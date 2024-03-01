@@ -1,0 +1,33 @@
+<resources>
+    <string name="app_name">TelpoAndroidDemo</string>
+    <string name="submit">floating action button</string>
+    <string name="home">Home</string>
+    <string name="settings">Settings</string>
+    <string name="title_activity_settings">SettingsActivity</string>
+
+    <!-- Preference Titles -->
+    <string name="messages_header">Messages</string>
+    <string name="sync_header">Sync</string>"
+
+    <!-- Messages Preferences -->
+    <string name="signature_title">Your signature</string>
+    <string name="reply_title">Default reply action</string>
+
+    <!-- Sync Preferences -->
+    <string name="sync_title">Sync email periodically</string>
+    <string name="attachment_title">Download incoming attachments</string>
+    <string name="attachment_summary_on">Automatically download attachments for incoming emails
+    </string>
+    <string name="attachment_summary_off">Only download attachments when manually requested</string>
+    <string name="url_base">URL Base</string>
+    <string name="url_image">URL Image</string>
+    <string name="seconds_in_green">Seconds in GREEN</string>
+    <string name="seconds_in_red">Seconds in RED</string>
+    <string name="device_id">Device ID</string>
+    <string name="logo_settings">Logo Settings</string>
+    <string name="nfc_reader">NFC Reader</string>
+    <string name="qr_reader">QR Reader</string>
+    <string name="save_settings">Save Settings</string>
+    <string name="go_to_settings_app">Go to settings app</string>
+    <string name="open_qr">Open QR</string>
+</resources>

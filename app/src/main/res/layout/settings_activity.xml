@@ -1,0 +1,212 @@
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/colorPrimaryDark"
+    tools:context=".ui.SettingsActivity">
+
+    <LinearLayout
+        android:padding="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        tools:ignore="UselessParent">
+
+        <LinearLayout
+            android:gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            tools:ignore="UseCompoundDrawables">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/baseline_app_settings_alt_24"
+                android:contentDescription="@string/logo_settings" />
+
+            <TextView
+                android:paddingStart="5dp"
+                android:textAlignment="center"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="@color/mText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/settings"
+                tools:ignore="RtlSymmetry" />
+
+        </LinearLayout>
+
+        <com.google.android.material.divider.MaterialDivider
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="5dp"/>
+
+        <TextView
+            android:layout_marginStart="5dp"
+            android:paddingTop="5dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/mText"
+            android:text="@string/url_base"/>
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:background="@drawable/rounded"
+            android:textColor="@color/colorPrimary"
+            android:textStyle="bold"
+            android:id="@+id/url_base"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+
+        <TextView
+            android:layout_marginStart="5dp"
+            android:paddingTop="5dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/mText"
+            android:text="@string/url_image"/>
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:background="@drawable/rounded"
+            android:textColor="@color/colorPrimary"
+            android:textStyle="bold"
+            android:id="@+id/url_image"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <TextView
+            android:layout_marginStart="5dp"
+            android:paddingTop="5dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/mText"
+            android:text="@string/seconds_in_green"/>
+
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:background="@drawable/rounded"
+            android:textColor="@color/colorPrimary"
+            android:textStyle="bold"
+            android:id="@+id/seconds_in_green"
+            android:inputType="numberDecimal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+
+
+        <TextView
+            android:layout_marginStart="5dp"
+            android:paddingTop="5dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/mText"
+            android:text="@string/seconds_in_red"/>
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:background="@drawable/rounded"
+            android:textColor="@color/colorPrimary"
+            android:textStyle="bold"
+            android:id="@+id/seconds_in_red"
+            android:inputType="numberDecimal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            />
+
+        <TextView
+            android:layout_marginStart="5dp"
+            android:paddingTop="5dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/mText"
+            android:text="@string/device_id"/>
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:background="@drawable/rounded"
+            android:textColor="@color/colorPrimary"
+            android:textStyle="bold"
+            android:id="@+id/device_id"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <com.google.android.material.divider.MaterialDivider
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="5dp"/>
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/nfc_reader"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/mText"
+            android:checked="false"
+            android:text="@string/nfc_reader"
+            android:textStyle="bold"
+            android:textSize="18sp"/>
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/qr_code"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/mText"
+            android:checked="false"
+            android:text="@string/qr_reader"
+            android:textStyle="bold"
+            android:textSize="18sp"/>
+
+        <LinearLayout
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:backgroundTint="@color/mText"
+                android:id="@+id/btn_save_settings"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/save_settings"
+                android:textStyle="bold"
+                android:textColor="@color/colorPrimary"
+                style="?attr/materialButtonOutlinedStyle" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <TextView
+        android:gravity="bottom|center"
+        android:id="@+id/versionApp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:textColor="@color/mText"
+        android:textStyle="bold"
+        android:textSize="12sp"
+        android:text=""/>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/btn_home"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|left"
+        android:layout_margin="16dp"
+        android:src="@drawable/home_black_24dp"
+        tools:ignore="RtlHardcoded"
+        android:contentDescription="@string/go_to_settings_app"/>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
