@@ -5,9 +5,9 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.example.telpoandroiddemo.infraestructure.database.AppDatabase;
+import com.example.telpoandroiddemo.infraestructure.database.persistence.AppDatabase;
 import com.example.telpoandroiddemo.domain.entities.Configuration;
-import com.example.telpoandroiddemo.domain.repository.ConfigurationRepository;
+import com.example.telpoandroiddemo.infraestructure.database.repository.ConfigurationRepository;
 
 import java.util.List;
 

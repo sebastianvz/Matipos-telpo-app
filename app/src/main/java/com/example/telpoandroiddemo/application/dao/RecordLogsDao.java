@@ -1,4 +1,4 @@
-package com.example.telpoandroiddemo.infraestructure.database.dao;
+package com.example.telpoandroiddemo.application.dao;
 
 import androidx.room.Dao;
 

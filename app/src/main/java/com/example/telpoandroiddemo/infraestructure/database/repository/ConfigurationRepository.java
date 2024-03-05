@@ -1,12 +1,12 @@
-package com.example.telpoandroiddemo.domain.repository;
+package com.example.telpoandroiddemo.infraestructure.database.repository;
 
 import android.os.AsyncTask;
 import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 
-import com.example.telpoandroiddemo.infraestructure.database.AppDatabase;
-import com.example.telpoandroiddemo.infraestructure.database.dao.ConfigurationDao;
+import com.example.telpoandroiddemo.infraestructure.database.persistence.AppDatabase;
+import com.example.telpoandroiddemo.application.dao.ConfigurationDao;
 import com.example.telpoandroiddemo.domain.entities.Configuration;
 
 import java.time.LocalDateTime;
