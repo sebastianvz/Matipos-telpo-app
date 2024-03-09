@@ -1,7 +1,6 @@
 package com.example.telpoandroiddemo.infraestructure.database.repository;
 
 import android.os.AsyncTask;
-import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 
@@ -20,6 +19,9 @@ public class ConfigurationRepository {
         this.db = db;
     }
 
+    public Configuration readByName(String name) {
+        return db.configurationDao().readByName(name);
+    }
     public LiveData<List<Configuration>> readAll() {
         return db.configurationDao().readAll();
     }
@@ -40,7 +42,6 @@ public class ConfigurationRepository {
         protected Void doInBackground(List<Configuration>... lists) {
             List<Configuration> configurations = lists[0];
             for (int index = 0; index < configurations.size(); index++) {
-                Log.d("APP-LP", "onSaveSettings -> name: " + configurations.get(index).name + " value: " +  configurations.get(index).value);
                 Configuration configuration = configurationDao.readByName(configurations.get(index).name);
                 LocalDateTime dateTime = LocalDateTime.now();
                 if (configuration == null) {

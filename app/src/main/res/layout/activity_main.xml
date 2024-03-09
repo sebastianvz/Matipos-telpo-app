@@ -7,10 +7,21 @@
     android:background="@color/colorPrimaryDark">
 
     <LinearLayout
+        android:gravity="center"
         android:id="@+id/main_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
+
+        <ImageButton
+            android:id="@+id/btn_read_value"
+            android:layout_gravity="center"
+            android:foregroundGravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/qr_code_scanner"
+            android:background="@drawable/rounded"
+            android:contentDescription="@string/qr_image_button" />
 
         <TextView
             android:layout_gravity="center"
@@ -20,6 +31,8 @@
             android:id="@+id/qr_code"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
+
+
 
     </LinearLayout>
 

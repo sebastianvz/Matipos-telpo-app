@@ -1,55 +1,77 @@
 package com.example.telpoandroiddemo.ui;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 
+import android.app.Dialog;
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.location.GnssAntennaInfo;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.SystemClock;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.common.apiutil.ResultCode;
-import com.common.apiutil.decode.DecodeReader;
-import com.common.apiutil.util.SDKUtil;
-import com.common.callback.IDecodeReaderListener;
 import com.example.telpoandroiddemo.R;
 import com.example.telpoandroiddemo.viewmodels.MainViewModel;
 
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import io.reactivex.internal.operators.parallel.ParallelRunOn;
 
 
 public class MainActivity extends AppCompatActivity {
 
     private MainViewModel viewModel;
-    private DecodeReader decodeReader;
-    private Boolean statusQrCode;
     private TextView textViewQrCode;
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
-        SDKUtil.getInstance(this).initSDK();
-        statusQrCode = false;
 
         hideSystemUI();
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        if (viewModel == null) {
+            viewModel = new ViewModelProvider(this).get(MainViewModel.class);
+            viewModel.startApplication(getApplication());
+        }
 
         textViewQrCode = findViewById(R.id.qr_code);
 
-        if (viewModel == null)
-            viewModel = new MainViewModel(getApplication());
-
         viewModel.getAllConfigurations().observe(this, configurations -> {
-            Log.d("APP-LP", "onCreate: " + configurations);
             if (configurations.isEmpty()) {
                 Intent intent = new Intent(this, SettingsActivity.class);
                 startActivity(intent);
+            }
+        });
+
+        viewModel.getCodeData().observe(this, new Observer<String>() {
+            @Override
+            public void onChanged(String s) {
+                if (s.length() > 1) {
+                    textViewQrCode.setText(s);
+                    progressDialog = new ProgressDialog(MainActivity.this);
+                    progressDialog.setTitle("Search");
+                    progressDialog.setMessage("Validating code " + s);
+                    progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                    progressDialog.show();
+                    progressDialog.setCancelable(false);
+
+                    SendCommand sendCommand = new SendCommand();
+                    sendCommand.execute(s);
+                }
             }
         });
 
@@ -72,13 +94,6 @@ public class MainActivity extends AppCompatActivity {
             throw new RuntimeException(e);
         }
 
-        findViewById(R.id.main_layout).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                initQrReader();
-            }
-        });
-
     }
 
     private void hideSystemUI() {
@@ -92,47 +107,46 @@ public class MainActivity extends AppCompatActivity {
                         | View.SYSTEM_UI_FLAG_FULLSCREEN);
     }
 
-    private void initQrReader() {
-        boolean statusQrCode = decodeReader.open(115200) == ResultCode.SUCCESS;
-        if (statusQrCode) {
-            decodeReader.setDecodeReaderListener(new IDecodeReaderListener() {
-                @Override
-                public void onRecvData(byte[] bytes) {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (bytes.length != 0) {
-                                String str = new String(bytes, StandardCharsets.UTF_8);
-                                textViewQrCode.setText(str);
-                            }
-                        }
-                    });
-                }
-            });
-        }
-    }
-
     @Override
     protected void onResume() {
         super.onResume();
-        if (decodeReader == null) {
-            decodeReader = new DecodeReader(this);//初始化
-        }
+        viewModel.telpoDevices.startDecodeReader();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        if (decodeReader != null) {
-            decodeReader.close();
-        }
+        viewModel.telpoDevices.stopDecodeReader();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (decodeReader != null) {
-            decodeReader.close();
+        viewModel.telpoDevices.stopDecodeReader();
+    }
+
+    // TODO: Create a new class
+    private class SendCommand {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        Handler handler = new Handler(Looper.getMainLooper());
+
+        public void execute (String code) {
+            executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    // Put Call service here
+                    SystemClock.sleep(5000);
+
+                    // Put code OnPost here
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            progressDialog.dismiss();
+                            textViewQrCode.setText("");
+                        }
+                    });
+                }
+            });
         }
     }
 }

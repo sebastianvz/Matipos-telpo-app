@@ -30,4 +30,5 @@
     <string name="save_settings">Save Settings</string>
     <string name="go_to_settings_app">Go to settings app</string>
     <string name="open_qr">Open QR</string>
+    <string name="qr_image_button">QR ImageButton</string>
 </resources>
