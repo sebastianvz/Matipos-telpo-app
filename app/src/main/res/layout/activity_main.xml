@@ -13,25 +13,14 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <ImageButton
-            android:id="@+id/btn_read_value"
-            android:layout_gravity="center"
-            android:foregroundGravity="center"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/qr_code_scanner"
-            android:background="@drawable/rounded"
-            android:contentDescription="@string/qr_image_button" />
-
-        <TextView
-            android:layout_gravity="center"
-            android:gravity="center"
-            android:textColor="@color/white"
-            android:textStyle="bold"
-            android:id="@+id/qr_code"
+        <ImageView
+            android:id="@+id/image_view"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
-
+            android:layout_height="match_parent"
+            android:scaleType="center"
+            android:src="@drawable/qr_code_scanner"
+            android:layout_marginBottom="8dp"
+            android:contentDescription="@string/company_logo" />
 
 
     </LinearLayout>

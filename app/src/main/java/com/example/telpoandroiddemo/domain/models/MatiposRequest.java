@@ -1,13 +1,10 @@
 package com.example.telpoandroiddemo.domain.models;
 
-import com.google.gson.annotations.SerializedName;
+import androidx.annotation.NonNull;
 
 public class MatiposRequest {
-    @SerializedName("codigoEntrada")
     private final String entryCode;
-    @SerializedName("direccionMAC")
     private final String macAddress;
-    @SerializedName("direccion")
     private final String address;
 
     public MatiposRequest(String entryCode, String macAddress, String address) {
@@ -27,4 +24,15 @@ public class MatiposRequest {
     public String getAddress() {
         return address;
     }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return "{\r\n" + //
+                "  \"entryCode\": \"" + entryCode + "\",\r\n" + //
+                "  \"macAddress\": \"" + macAddress + "\",\r\n" + //
+                "  \"address\": \"" + address + "\"\r\n" + //
+                "}";
+    }
 }
+

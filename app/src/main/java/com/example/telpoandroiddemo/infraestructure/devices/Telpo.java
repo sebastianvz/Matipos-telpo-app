@@ -15,11 +15,20 @@ import java.nio.charset.StandardCharsets;
 
 public class Telpo implements TelpoDevices {
 
+    private static Telpo instance;
     private DecodeReader decodeReader;
     private final Context context;
     private Boolean isQrEnable;
 
     private MutableLiveData<String> code;
+
+    public static Telpo getInstance(Context context) {
+        if (instance == null)
+        {
+            instance = new Telpo(context);
+        }
+        return instance;
+    }
 
     public Telpo(Context context) {
         this.isQrEnable = false;

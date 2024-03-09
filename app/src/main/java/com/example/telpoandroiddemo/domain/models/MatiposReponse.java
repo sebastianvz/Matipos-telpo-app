@@ -1,15 +1,12 @@
 package com.example.telpoandroiddemo.domain.models;
 
-import com.google.gson.annotations.SerializedName;
+
+import androidx.annotation.NonNull;
 
 public class MatiposReponse {
-    @SerializedName("Estado")
     private final Boolean status;
-    @SerializedName("Direccion")
     private final String address;
-    @SerializedName("Fecha")
     private final String date;
-    @SerializedName("Respuesta")
     private final String ans;
 
     public MatiposReponse(Boolean status, String address, String date, String ans) {
@@ -33,5 +30,16 @@ public class MatiposReponse {
 
     public String getAns() {
         return ans;
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return "{\r\n" + //
+                "  \"status\": \"" + status + "\",\r\n" + //
+                "  \"address\": \"" + address + "\",\r\n" + //
+                "  \"date\": \"" + date + "\"\r\n" + //
+                "  \"ans\": \"" + ans + "\"\r\n" + //
+                "}";
     }
 }

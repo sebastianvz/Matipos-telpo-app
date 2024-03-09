@@ -1,40 +1,42 @@
 package com.example.telpoandroiddemo.ui;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
-import android.app.Dialog;
 import android.app.ProgressDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.location.GnssAntennaInfo;
-import android.os.AsyncTask;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.SystemClock;
 import android.view.View;
-import android.widget.ProgressBar;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.util.Base64;
 
 import com.example.telpoandroiddemo.R;
+import com.example.telpoandroiddemo.application.services.IMatiposService;
+import com.example.telpoandroiddemo.domain.models.MatiposReponse;
+import com.example.telpoandroiddemo.domain.models.MatiposRequest;
+import com.example.telpoandroiddemo.infraestructure.services.MatiposService;
 import com.example.telpoandroiddemo.viewmodels.MainViewModel;
 
+import java.net.SocketTimeoutException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import io.reactivex.internal.operators.parallel.ParallelRunOn;
-
 
 public class MainActivity extends AppCompatActivity {
 
     private MainViewModel viewModel;
-    private TextView textViewQrCode;
     private ProgressDialog progressDialog;
+    private ImageView imageView;
+    MutableLiveData<String> logo = new MutableLiveData<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
             viewModel.startApplication(getApplication());
         }
 
-        textViewQrCode = findViewById(R.id.qr_code);
+        imageView = (ImageView) findViewById(R.id.image_view);
 
         viewModel.getAllConfigurations().observe(this, configurations -> {
             if (configurations.isEmpty()) {
@@ -61,7 +63,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onChanged(String s) {
                 if (s.length() > 1) {
-                    textViewQrCode.setText(s);
                     progressDialog = new ProgressDialog(MainActivity.this);
                     progressDialog.setTitle("Search");
                     progressDialog.setMessage("Validating code " + s);
@@ -83,6 +84,21 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        findViewById(R.id.image_view).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                progressDialog = new ProgressDialog(MainActivity.this);
+                progressDialog.setTitle("Search");
+                progressDialog.setMessage("Validating code ");
+                progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                progressDialog.show();
+                progressDialog.setCancelable(false);
+
+                SendCommand sendCommand = new SendCommand();
+                sendCommand.execute("ABC123");
+            }
+        });
+
         PackageInfo packageInfo;
         try {
             packageInfo = getApplicationContext().getPackageManager().getPackageInfo(getApplicationContext().getPackageName(), 0);
@@ -94,6 +110,15 @@ public class MainActivity extends AppCompatActivity {
             throw new RuntimeException(e);
         }
 
+        logo.observe(this, new Observer<String>() {
+            @Override
+            public void onChanged(String encodedString) {
+                encodedString = encodedString.replace("\"","");
+                byte[] encodeByte = Base64.decode(encodedString, Base64.DEFAULT);
+                Bitmap bitmap = BitmapFactory.decodeByteArray(encodeByte, 0, encodeByte.length);
+                imageView.setImageBitmap(bitmap);
+            }
+        });
     }
 
     private void hideSystemUI() {
@@ -110,19 +135,19 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        viewModel.telpoDevices.startDecodeReader();
+        viewModel.getDevice().startDecodeReader();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        viewModel.telpoDevices.stopDecodeReader();
+        viewModel.getDevice().stopDecodeReader();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        viewModel.telpoDevices.stopDecodeReader();
+        viewModel.getDevice().stopDecodeReader();
     }
 
     // TODO: Create a new class
@@ -135,14 +160,39 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void run() {
                     // Put Call service here
-                    SystemClock.sleep(5000);
+                    IMatiposService service = MatiposService.getInstance(viewModel.getConfiguration("url_base"));
+                    MatiposRequest request = new MatiposRequest(code, viewModel.getMacAddress(), null);
+
+                    MatiposReponse response = null;
+                    String errorMessage = null;
+                    String base64String = null;
+
+                    try {
+                        response = service.sendPutRequest(viewModel.getConfiguration("url_base"), request);
+                        base64String = service.getImageInBase64(viewModel.getConfiguration("url_image"));
+                    } catch (SocketTimeoutException e) {
+                        errorMessage = e.getMessage();
+                    }
 
                     // Put code OnPost here
+                    MatiposReponse finalResponse = response;
+                    String finalErrorMessage = errorMessage;
+                    String finalBase64String = base64String;
+
+                    logo.postValue(finalBase64String);
+
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
                             progressDialog.dismiss();
-                            textViewQrCode.setText("");
+                            if (finalResponse != null)
+                                if (finalResponse.getStatus())
+                                    Toast.makeText(getApplicationContext(), "Code Enable", Toast.LENGTH_SHORT).show();
+                                else
+                                    Toast.makeText(getApplicationContext(), "Code Disable", Toast.LENGTH_SHORT).show();
+                            else
+                                Toast.makeText(getApplicationContext(), finalErrorMessage, Toast.LENGTH_SHORT).show();
+
                         }
                     });
                 }
