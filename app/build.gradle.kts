@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.telpoandroiddemo"
-        minSdk = 33
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "M1.0.0beta"

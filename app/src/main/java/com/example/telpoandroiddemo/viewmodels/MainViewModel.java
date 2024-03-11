@@ -1,70 +1,53 @@
 package com.example.telpoandroiddemo.viewmodels;
-import android.annotation.SuppressLint;
-import android.app.Application;
 import android.content.Context;
-import android.net.wifi.WifiManager;
-import android.text.TextUtils;
 
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.common.callback.IDecodeReaderListener;
 import com.example.telpoandroiddemo.application.devices.TelpoDevices;
+import com.example.telpoandroiddemo.application.useCases.GetLogoUseCase;
+import com.example.telpoandroiddemo.application.useCases.ValidateCodeUseCase;
+import com.example.telpoandroiddemo.domain.models.MatiposReponse;
 import com.example.telpoandroiddemo.infraestructure.database.persistence.AppDatabase;
 import com.example.telpoandroiddemo.domain.entities.Configuration;
 import com.example.telpoandroiddemo.infraestructure.database.repository.ConfigurationRepository;
 import com.example.telpoandroiddemo.infraestructure.devices.Telpo;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 
 public class MainViewModel extends ViewModel {
-
-    private Application application;
-    private TelpoDevices telpoDevices;
-    private String macAddress;
     private LiveData<List<Configuration>> allConfigurations;
+    private ValidateCodeUseCase validateCodeUseCase;
 
-    public void startApplication(Application application) {
-        this.application = application;
-        ConfigurationRepository repository = new ConfigurationRepository(AppDatabase.getInstance(application.getApplicationContext()));
-        allConfigurations = repository.readAll();
-        telpoDevices = Telpo.getInstance(application.getApplicationContext());
-    }
-
-    public LiveData<List<Configuration>> getAllConfigurations() {
-        if (allConfigurations == null)
-            allConfigurations = new MutableLiveData<List<Configuration>>();
+    public LiveData<List<Configuration>> getAllConfigurations(Context context) {
+        if (allConfigurations == null) {
+            ConfigurationRepository repository = new ConfigurationRepository(AppDatabase.getInstance(context));
+            allConfigurations = repository.readAll();
+        }
         return allConfigurations;
     }
 
-    public TelpoDevices getDevice() {
-        return telpoDevices;
+    public TelpoDevices getDevice(Context context) {
+        return Telpo.getInstance(context);
     }
 
-    public LiveData<String> getCodeData() {
-        return telpoDevices.codeData();
+    public LiveData<String> getCodeData(Context context) {
+        return Telpo.getInstance(context).codeData();
     }
 
-    public String getConfiguration(String key) {
-        ConfigurationRepository repository = new ConfigurationRepository(AppDatabase.getInstance(application.getApplicationContext()));
-        return repository.readByName(key).value;
+    public LiveData<String> GetLogo(Context context) {
+        return GetLogoUseCase.execute(context);
     }
 
-    public String getMacAddress() {
-        Context context = application.getApplicationContext();
-        WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-        @SuppressLint("HardwareIds") String macAddress = wifiManager.getConnectionInfo().getMacAddress();
-        if (TextUtils.isEmpty(macAddress))
-            macAddress = "Device doesn't have mac address or wi-fi is disabled";
-        return macAddress;
+    public void ValidateCode(Context context, String code) {
+        validateCodeUseCase.execute(context, code);
     }
 
-    public String getLogo() {
-        ConfigurationRepository repository = new ConfigurationRepository(AppDatabase.getInstance(application.getApplicationContext()));
-        return repository.readByName("logo").value;
+    public LiveData<MatiposReponse> ValidateCodeResponse() {
+        if (validateCodeUseCase == null)
+            validateCodeUseCase = new ValidateCodeUseCase();
+        return validateCodeUseCase.getReponseMutableLiveData();
     }
 
 }

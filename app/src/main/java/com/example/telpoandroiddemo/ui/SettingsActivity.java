@@ -1,19 +1,15 @@
 package com.example.telpoandroiddemo.ui;
 
-import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.Observer;
 
 import com.example.telpoandroiddemo.R;
 import com.example.telpoandroiddemo.domain.entities.Configuration;
-import com.example.telpoandroiddemo.viewmodels.MainViewModel;
 import com.example.telpoandroiddemo.viewmodels.SettingsViewModel;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textfield.TextInputEditText;
@@ -48,27 +44,14 @@ public class SettingsActivity extends AppCompatActivity {
         switchMaterialNFC = findViewById(R.id.nfc_reader);
         switchMaterialQR = findViewById(R.id.qr_code);
 
-        findViewById(R.id.btn_save_settings).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onSaveSettings();
-            }
+        findViewById(R.id.btn_save_settings).setOnClickListener(v -> onSaveSettings());
+
+        findViewById(R.id.btn_home).setOnClickListener(v -> {
+            if (!Objects.requireNonNull(viewModel.getAllConfigurations().getValue()).isEmpty())
+                finish();
         });
 
-        findViewById(R.id.btn_home).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!Objects.requireNonNull(viewModel.getAllConfigurations().getValue()).isEmpty())
-                    finish();
-            }
-        });
-
-        viewModel.getAllConfigurations().observe(this, new Observer<List<Configuration>>() {
-            @Override
-            public void onChanged(List<Configuration> configurations) {
-                setNewValues(configurations);
-            }
-        });
+        viewModel.getAllConfigurations().observe(this, this::setNewValues);
 
         PackageInfo packageInfo;
         try {
@@ -92,7 +75,7 @@ public class SettingsActivity extends AppCompatActivity {
         configurations.add(new Configuration("device_id", String.valueOf(textInputEditTextDeviceId.getText())));
         configurations.add(new Configuration("nfc_status", switchMaterialNFC.isChecked() ? "ON" : "OFF"));
         configurations.add(new Configuration("qr_status", switchMaterialQR.isChecked() ? "ON" : "OFF"));
-        viewModel.createOrUpdateConfigurations(getApplicationContext(), configurations);
+        viewModel.createOrUpdateConfigurations(SettingsActivity.this, configurations);
     }
 
     private void setNewValues(List<Configuration> configurations) {

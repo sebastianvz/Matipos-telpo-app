@@ -1,10 +1,10 @@
 package com.example.telpoandroiddemo.ui;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
+import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
@@ -14,30 +14,37 @@ import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.util.Base64;
 
 import com.example.telpoandroiddemo.R;
-import com.example.telpoandroiddemo.application.services.IMatiposService;
+import com.example.telpoandroiddemo.domain.entities.Configuration;
 import com.example.telpoandroiddemo.domain.models.MatiposReponse;
-import com.example.telpoandroiddemo.domain.models.MatiposRequest;
 import com.example.telpoandroiddemo.infraestructure.services.MatiposService;
 import com.example.telpoandroiddemo.viewmodels.MainViewModel;
 
-import java.net.SocketTimeoutException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
 
 public class MainActivity extends AppCompatActivity {
 
     private MainViewModel viewModel;
     private ProgressDialog progressDialog;
     private ImageView imageView;
-    MutableLiveData<String> logo = new MutableLiveData<>();
+    private AlertDialog dialog;
 
+    private Boolean qrStatus = false;
+    private int secondsRed = 1000;
+    private int secondsGreen = 500;
+
+    @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -45,58 +52,79 @@ public class MainActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        if (viewModel == null) {
-            viewModel = new ViewModelProvider(this).get(MainViewModel.class);
-            viewModel.startApplication(getApplication());
-        }
+        viewModel = new ViewModelProvider(this).get(MainViewModel.class);
 
-        imageView = (ImageView) findViewById(R.id.image_view);
+        imageView = findViewById(R.id.image_view);
 
-        viewModel.getAllConfigurations().observe(this, configurations -> {
+        viewModel.getAllConfigurations(MainActivity.this).observe(this, configurations -> {
             if (configurations.isEmpty()) {
                 Intent intent = new Intent(this, SettingsActivity.class);
                 startActivity(intent);
             }
-        });
-
-        viewModel.getCodeData().observe(this, new Observer<String>() {
-            @Override
-            public void onChanged(String s) {
-                if (s.length() > 1) {
-                    progressDialog = new ProgressDialog(MainActivity.this);
-                    progressDialog.setTitle("Search");
-                    progressDialog.setMessage("Validating code " + s);
-                    progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                    progressDialog.show();
-                    progressDialog.setCancelable(false);
-
-                    SendCommand sendCommand = new SendCommand();
-                    sendCommand.execute(s);
-                }
+            else {
+                 for (Configuration configuration : configurations) {
+                     switch (configuration.name) {
+                         case "qr_status":
+                             qrStatus = configuration.value.equals("ON");
+                             if (qrStatus)
+                                 viewModel.getDevice(MainActivity.this).startDecodeReader();
+                             else
+                                 viewModel.getDevice(MainActivity.this).stopDecodeReader();
+                             break;
+                         case "seconds_in_green":
+                             secondsGreen = Integer.parseInt(configuration.value) * 1000;
+                             break;
+                         case "seconds_in_red":
+                             secondsRed = Integer.parseInt(configuration.value) * 1000;
+                             break;
+                     }
+                 }
             }
         });
 
-        findViewById(R.id.btn_settings).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(v.getContext(), SettingsActivity.class);
-                startActivity(intent);
-            }
-        });
-
-        findViewById(R.id.image_view).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        viewModel.getCodeData(MainActivity.this).observe(this, s -> {
+            if (s.length() > 1) {
                 progressDialog = new ProgressDialog(MainActivity.this);
                 progressDialog.setTitle("Search");
-                progressDialog.setMessage("Validating code ");
+                progressDialog.setMessage("Validating code " + s);
                 progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
                 progressDialog.show();
                 progressDialog.setCancelable(false);
-
-                SendCommand sendCommand = new SendCommand();
-                sendCommand.execute("ABC123");
+                viewModel.ValidateCode(MainActivity.this, s);
             }
+        });
+
+        viewModel.ValidateCodeResponse().observe(this, matiposReponse -> {
+            progressDialog.dismiss();
+
+            // Build Dialog
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+            LayoutInflater inflater = MainActivity.this.getLayoutInflater();
+            View view = inflater.inflate(R.layout.custom_dialog, null);
+            builder.setView(view);
+            builder.setCancelable(false);
+            LinearLayout linearLayout = view.findViewById(R.id.linea_layout);
+            TextView title = view.findViewById(R.id.title);
+            TextView message = view.findViewById(R.id.message);
+            if (matiposReponse != null) {
+                linearLayout.setBackgroundResource(matiposReponse.getStatus() ? R.drawable.ok : R.drawable.no);
+                title.setText(matiposReponse.getStatus() ? "ENABLE" : "DISABLE");
+                message.setText(matiposReponse.getAns());
+            }
+            else {
+                title.setText("Error");
+                message.setText("Error in communication with server");
+                linearLayout.setBackgroundResource(R.drawable.warning);
+            }
+
+            dialog = builder.create();
+            dialog.show();
+            new Dialog().execute(matiposReponse);
+        });
+
+        findViewById(R.id.btn_settings).setOnClickListener(v -> {
+            Intent intent = new Intent(v.getContext(), SettingsActivity.class);
+            startActivity(intent);
         });
 
         PackageInfo packageInfo;
@@ -106,17 +134,17 @@ public class MainActivity extends AppCompatActivity {
                 TextView versionApp = findViewById(R.id.versionApp);
                 versionApp.setText(packageInfo.versionName);
             }
-        } catch (PackageManager.NameNotFoundException e) {
-            throw new RuntimeException(e);
-        }
+        } catch (PackageManager.NameNotFoundException ignore) {}
 
-        logo.observe(this, new Observer<String>() {
-            @Override
-            public void onChanged(String encodedString) {
+        viewModel.GetLogo(MainActivity.this).observe(this, encodedString -> {
+            if (encodedString != null) {
                 encodedString = encodedString.replace("\"","");
                 byte[] encodeByte = Base64.decode(encodedString, Base64.DEFAULT);
                 Bitmap bitmap = BitmapFactory.decodeByteArray(encodeByte, 0, encodeByte.length);
                 imageView.setImageBitmap(bitmap);
+            }
+            else  {
+                Toast.makeText(MainActivity.this, "LogoBase65 is empty", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -135,68 +163,39 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        viewModel.getDevice().startDecodeReader();
+        if (qrStatus)
+            viewModel.getDevice(MainActivity.this).startDecodeReader();
+        else
+            viewModel.getDevice(MainActivity.this).stopDecodeReader();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        viewModel.getDevice().stopDecodeReader();
+        viewModel.getDevice(MainActivity.this).stopDecodeReader();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        viewModel.getDevice().stopDecodeReader();
+        viewModel.getDevice(MainActivity.this).stopDecodeReader();
     }
 
-    // TODO: Create a new class
-    private class SendCommand {
+    private class Dialog {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         Handler handler = new Handler(Looper.getMainLooper());
-
-        public void execute (String code) {
-            executorService.execute(new Runnable() {
-                @Override
-                public void run() {
-                    // Put Call service here
-                    IMatiposService service = MatiposService.getInstance(viewModel.getConfiguration("url_base"));
-                    MatiposRequest request = new MatiposRequest(code, viewModel.getMacAddress(), null);
-
-                    MatiposReponse response = null;
-                    String errorMessage = null;
-                    String base64String = null;
-
-                    try {
-                        response = service.sendPutRequest(viewModel.getConfiguration("url_base"), request);
-                        base64String = service.getImageInBase64(viewModel.getConfiguration("url_image"));
-                    } catch (SocketTimeoutException e) {
-                        errorMessage = e.getMessage();
-                    }
-
-                    // Put code OnPost here
-                    MatiposReponse finalResponse = response;
-                    String finalErrorMessage = errorMessage;
-                    String finalBase64String = base64String;
-
-                    logo.postValue(finalBase64String);
-
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            progressDialog.dismiss();
-                            if (finalResponse != null)
-                                if (finalResponse.getStatus())
-                                    Toast.makeText(getApplicationContext(), "Code Enable", Toast.LENGTH_SHORT).show();
-                                else
-                                    Toast.makeText(getApplicationContext(), "Code Disable", Toast.LENGTH_SHORT).show();
-                            else
-                                Toast.makeText(getApplicationContext(), finalErrorMessage, Toast.LENGTH_SHORT).show();
-
-                        }
-                    });
+        public void execute(MatiposReponse matiposReponse) {
+            executorService.execute(() -> {
+                // TODO:
+                if (matiposReponse != null) {
+                    SystemClock.sleep(matiposReponse.getStatus() ? secondsGreen : secondsRed);
                 }
+                else {
+                    SystemClock.sleep(secondsRed);
+                }
+                handler.post(() -> dialog.dismiss());
             });
         }
     }
+
 }

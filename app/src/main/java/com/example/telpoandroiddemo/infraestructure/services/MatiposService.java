@@ -11,6 +11,7 @@ import org.json.JSONObject;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -21,16 +22,11 @@ import java.util.Base64;
 public class MatiposService implements IMatiposService {
 
     private static MatiposService instance;
-    private final String targetUrl;
 
-    public static MatiposService getInstance(String targetUrl) {
+    public static MatiposService getInstance() {
         if (instance == null)
-            instance = new MatiposService(targetUrl);
+            instance = new MatiposService();
         return  instance;
-    }
-
-    public MatiposService(String targetUrl) {
-        this.targetUrl = targetUrl;
     }
 
     @Override
@@ -59,7 +55,14 @@ public class MatiposService implements IMatiposService {
             int responseCode = httpCon.getResponseCode();
             switch (responseCode) {
                 case HttpURLConnection.HTTP_OK:
-                    String response = new String(httpCon.getInputStream().readAllBytes());
+                    InputStream inputStream = httpCon.getInputStream();
+                    int readLen;
+                    final int bufLen = 1024;
+                    byte[] buf = new byte[bufLen];
+                    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                    while ((readLen = inputStream.read(buf, 0, bufLen)) != -1)
+                        outputStream.write(buf, 0, readLen);
+                    String response = outputStream.toString();
                     JSONObject jsonObject = new JSONObject(response);
                         matiposReponse  = new MatiposReponse(
                                 (Boolean) jsonObject.get("status"),
@@ -130,7 +133,15 @@ public class MatiposService implements IMatiposService {
             // Set the read timeout to 5000 milliseconds
             connection.setReadTimeout(5000);
             connection.connect();
-            return new String(connection.getInputStream().readAllBytes());
+
+            InputStream inputStream = connection.getInputStream();
+            int readLen;
+            final int bufLen = 1024*8;
+            byte[] buf = new byte[bufLen];
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            while ((readLen = inputStream.read(buf, 0, bufLen)) != -1)
+                outputStream.write(buf, 0, readLen);
+            return outputStream.toString();
         } catch (IOException e) {
             e.printStackTrace();
             return null;

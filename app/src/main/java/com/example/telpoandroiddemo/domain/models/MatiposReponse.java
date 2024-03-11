@@ -36,7 +36,7 @@ public class MatiposReponse {
     @Override
     public String toString() {
         return "{\r\n" + //
-                "  \"status\": \"" + status + "\",\r\n" + //
+                "  \"status\": " + status + ",\r\n" + //
                 "  \"address\": \"" + address + "\",\r\n" + //
                 "  \"date\": \"" + date + "\"\r\n" + //
                 "  \"ans\": \"" + ans + "\"\r\n" + //
