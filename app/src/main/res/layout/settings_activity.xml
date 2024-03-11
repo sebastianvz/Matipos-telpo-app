@@ -133,7 +133,9 @@
             android:textSize="18sp"
             android:textStyle="bold"
             android:textColor="@color/mText"
-            android:text="@string/device_id"/>
+            android:inputType="textMultiLine|textFilter"
+            android:text="@string/device_id"
+            tools:ignore="TextViewEdits" />
 
         <com.google.android.material.textfield.TextInputEditText
             android:background="@drawable/rounded"

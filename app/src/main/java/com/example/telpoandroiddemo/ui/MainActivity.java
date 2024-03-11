@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModelProvider;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -17,6 +16,8 @@ import android.os.Looper;
 import android.os.SystemClock;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -26,7 +27,6 @@ import android.util.Base64;
 import com.example.telpoandroiddemo.R;
 import com.example.telpoandroiddemo.domain.entities.Configuration;
 import com.example.telpoandroiddemo.domain.models.MatiposReponse;
-import com.example.telpoandroiddemo.infraestructure.services.MatiposService;
 import com.example.telpoandroiddemo.viewmodels.MainViewModel;
 
 import java.util.concurrent.ExecutorService;
@@ -36,22 +36,28 @@ import java.util.concurrent.Executors;
 public class MainActivity extends AppCompatActivity {
 
     private MainViewModel viewModel;
-    private ProgressDialog progressDialog;
     private ImageView imageView;
     private AlertDialog dialog;
-
     private Boolean qrStatus = false;
     private int secondsRed = 1000;
     private int secondsGreen = 500;
-
     @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
-        hideSystemUI();
-
         super.onCreate(savedInstanceState);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_main);
+
+        // Hide the navigation bar and status bar
+        View decorView = getWindow().getDecorView();
+        int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+        decorView.setSystemUiVisibility(uiOptions);
+
         viewModel = new ViewModelProvider(this).get(MainViewModel.class);
 
         imageView = findViewById(R.id.image_view);
@@ -84,23 +90,38 @@ public class MainActivity extends AppCompatActivity {
 
         viewModel.getCodeData(MainActivity.this).observe(this, s -> {
             if (s.length() > 1) {
-                progressDialog = new ProgressDialog(MainActivity.this);
-                progressDialog.setTitle("Search");
-                progressDialog.setMessage("Validating code " + s);
-                progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                progressDialog.show();
-                progressDialog.setCancelable(false);
+                // Stop qrReader
+                viewModel.getDevice(MainActivity.this).stopDecodeReader();
+
+                // Build dialog info
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                LayoutInflater inflater = MainActivity.this.getLayoutInflater();
+                View view = inflater.inflate(R.layout.validate_code_dialog, null);
+                view.setSystemUiVisibility(uiOptions);
+                builder.setView(view);
+                builder.setCancelable(false);
+                LinearLayout linearLayout = view.findViewById(R.id.linea_layout);
+                TextView title = view.findViewById(R.id.title);
+                TextView message = view.findViewById(R.id.message);
+                title.setText("Validating");
+                message.setText(s);
+                linearLayout.setBackgroundResource(R.drawable.rounded);
+                dialog = builder.create();
+                dialog.show();
+
+                // Go to Server
                 viewModel.ValidateCode(MainActivity.this, s);
             }
         });
 
         viewModel.ValidateCodeResponse().observe(this, matiposReponse -> {
-            progressDialog.dismiss();
+            dialog.dismiss();
 
             // Build Dialog
             AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
             LayoutInflater inflater = MainActivity.this.getLayoutInflater();
             View view = inflater.inflate(R.layout.custom_dialog, null);
+            view.setSystemUiVisibility(uiOptions);
             builder.setView(view);
             builder.setCancelable(false);
             LinearLayout linearLayout = view.findViewById(R.id.linea_layout);
@@ -149,17 +170,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void hideSystemUI() {
-        View decorView = getWindow().getDecorView();
-        decorView.setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_FULLSCREEN);
-    }
-
     @Override
     protected void onResume() {
         super.onResume();
@@ -193,7 +203,11 @@ public class MainActivity extends AppCompatActivity {
                 else {
                     SystemClock.sleep(secondsRed);
                 }
-                handler.post(() -> dialog.dismiss());
+                handler.post(() -> {
+                    dialog.dismiss();
+                    if (qrStatus)
+                        viewModel.getDevice(MainActivity.this).startDecodeReader();
+                });
             });
         }
     }

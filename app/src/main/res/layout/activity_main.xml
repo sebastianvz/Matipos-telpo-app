@@ -17,14 +17,14 @@
             android:id="@+id/image_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:maxHeight="400dp"
+            android:maxWidth="300dp"
             android:scaleType="center"
-            android:src="@drawable/qr_code_scanner"
+            android:src="@drawable/logo"
             android:layout_marginBottom="8dp"
             android:contentDescription="@string/company_logo" />
 
-
     </LinearLayout>
-
 
     <TextView
         android:gravity="bottom|center"

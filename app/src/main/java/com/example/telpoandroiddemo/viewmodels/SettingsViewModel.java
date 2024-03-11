@@ -30,7 +30,7 @@ public class SettingsViewModel extends ViewModel {
     public void createOrUpdateConfigurations(Context context, List<Configuration> configurations) {
         // repository.createOrUpdateConfiguration(configurations);
         ConfigurationRepository repository = new ConfigurationRepository(db);
-        new SaveDataTask(context, repository, "Save configurations").execute(configurations);
+        new SaveDataTask(context, repository).execute(configurations);
     }
 
     public LiveData<List<Configuration>> getAllConfigurations() {
@@ -41,14 +41,11 @@ public class SettingsViewModel extends ViewModel {
 
     public class SaveDataTask extends AsyncTask<List<Configuration>, Void, Boolean> {
         private final Context context;
-        private Dialog dialog;
-        private final String fileName;
         private final ConfigurationRepository repository;
 
-        public SaveDataTask(Context context, ConfigurationRepository repository, String fileName) {
+        public SaveDataTask(Context context, ConfigurationRepository repository) {
             this.context = context;
             this.repository = repository;
-            this.fileName = fileName;
         }
 
         @Override
