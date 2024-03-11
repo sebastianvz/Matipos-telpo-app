@@ -17,7 +17,6 @@ import android.os.SystemClock;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
-import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -46,12 +45,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_main);
 
         // Hide the navigation bar and status bar
+        Window window = this.getWindow();
+        window.setStatusBarColor(this.getResources().getColor(R.color.colorPrimaryDark, this.getTheme()));
+
         View decorView = getWindow().getDecorView();
         int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_FULLSCREEN
@@ -146,6 +145,25 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.btn_settings).setOnClickListener(v -> {
             Intent intent = new Intent(v.getContext(), SettingsActivity.class);
             startActivity(intent);
+
+            /*
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+            LayoutInflater inflater = MainActivity.this.getLayoutInflater();
+            View view = inflater.inflate(R.layout.validate_code_dialog, null);
+            view.setSystemUiVisibility(uiOptions);
+            builder.setView(view);
+            builder.setCancelable(false);
+            LinearLayout linearLayout = view.findViewById(R.id.linea_layout);
+            TextView title = view.findViewById(R.id.title);
+            TextView message = view.findViewById(R.id.message);
+            title.setText("Validating");
+            message.setText("test");
+            linearLayout.setBackgroundResource(R.drawable.rounded);
+            dialog = builder.create();
+            dialog.show();
+
+            new Dialog().execute(null);
+            */
         });
 
         PackageInfo packageInfo;
