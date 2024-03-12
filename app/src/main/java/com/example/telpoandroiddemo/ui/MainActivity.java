@@ -40,6 +40,10 @@ public class MainActivity extends AppCompatActivity {
     private Boolean qrStatus = false;
     private int secondsRed = 1000;
     private int secondsGreen = 500;
+
+    // TODO: Clear
+    int counter = 0;
+
     @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,13 +57,21 @@ public class MainActivity extends AppCompatActivity {
 
         View decorView = getWindow().getDecorView();
         int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                | View.SYSTEM_UI_FLAG_FULLSCREEN
                 | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
         decorView.setSystemUiVisibility(uiOptions);
 
         viewModel = new ViewModelProvider(this).get(MainViewModel.class);
 
         imageView = findViewById(R.id.image_view);
+
+        findViewById(R.id.main_layout).setOnClickListener(v -> {
+            counter++;
+            if (counter > 10) {
+                Toast.makeText(MainActivity.this, "Task, Get new Logo programming", Toast.LENGTH_SHORT).show();
+                counter = 0;
+                viewModel.refreshLogo(MainActivity.this);
+            }
+        });
 
         viewModel.getAllConfigurations(MainActivity.this).observe(this, configurations -> {
             if (configurations.isEmpty()) {
@@ -145,25 +157,6 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.btn_settings).setOnClickListener(v -> {
             Intent intent = new Intent(v.getContext(), SettingsActivity.class);
             startActivity(intent);
-
-            /*
-            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-            LayoutInflater inflater = MainActivity.this.getLayoutInflater();
-            View view = inflater.inflate(R.layout.validate_code_dialog, null);
-            view.setSystemUiVisibility(uiOptions);
-            builder.setView(view);
-            builder.setCancelable(false);
-            LinearLayout linearLayout = view.findViewById(R.id.linea_layout);
-            TextView title = view.findViewById(R.id.title);
-            TextView message = view.findViewById(R.id.message);
-            title.setText("Validating");
-            message.setText("test");
-            linearLayout.setBackgroundResource(R.drawable.rounded);
-            dialog = builder.create();
-            dialog.show();
-
-            new Dialog().execute(null);
-            */
         });
 
         PackageInfo packageInfo;
@@ -191,6 +184,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        counter = 0;
         if (qrStatus)
             viewModel.getDevice(MainActivity.this).startDecodeReader();
         else
@@ -201,12 +195,14 @@ public class MainActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         viewModel.getDevice(MainActivity.this).stopDecodeReader();
+        counter = 0;
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         viewModel.getDevice(MainActivity.this).stopDecodeReader();
+        counter = 0;
     }
 
     private class Dialog {

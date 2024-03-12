@@ -40,6 +40,10 @@ public class MainViewModel extends ViewModel {
         return GetLogoUseCase.execute(context);
     }
 
+    public void refreshLogo(Context context) {
+        GetLogoUseCase.getLogoFromApi(context);
+    }
+
     public void ValidateCode(Context context, String code) {
         validateCodeUseCase.execute(context, code);
     }

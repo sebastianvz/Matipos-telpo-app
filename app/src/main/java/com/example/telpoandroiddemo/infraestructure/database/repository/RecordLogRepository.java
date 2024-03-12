@@ -2,14 +2,21 @@ package com.example.telpoandroiddemo.infraestructure.database.repository;
 
 import android.content.Context;
 
+import androidx.lifecycle.LiveData;
+
 import com.example.telpoandroiddemo.application.dao.RecordLogsDao;
 import com.example.telpoandroiddemo.domain.entities.RecordLog;
 import com.example.telpoandroiddemo.infraestructure.database.persistence.AppDatabase;
 
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class RecordLogRepository {
+
+    public LiveData<List<RecordLog>> getRecordLogs(Context context) {
+        return AppDatabase.getInstance(context).recordLogsDao().getRecordLogs();
+    }
 
     public void InsertLog(Context context, RecordLog log) {
         new InsertLogAsyncTask().execute(context, log);

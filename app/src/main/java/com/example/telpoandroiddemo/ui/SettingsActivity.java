@@ -1,5 +1,6 @@
 package com.example.telpoandroiddemo.ui;
 
+import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -40,7 +41,6 @@ public class SettingsActivity extends AppCompatActivity {
 
         View decorView = getWindow().getDecorView();
         int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                | View.SYSTEM_UI_FLAG_FULLSCREEN
                 | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
         decorView.setSystemUiVisibility(uiOptions);
 
@@ -58,6 +58,11 @@ public class SettingsActivity extends AppCompatActivity {
         findViewById(R.id.btn_home).setOnClickListener(v -> {
             if (!Objects.requireNonNull(viewModel.getAllConfigurations().getValue()).isEmpty())
                 finish();
+        });
+
+        findViewById(R.id.btn_audit).setOnClickListener(v -> {
+            Intent intent = new Intent(this, Audit.class);
+            startActivity(intent);
         });
 
         viewModel.getAllConfigurations().observe(this, this::setNewValues);

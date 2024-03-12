@@ -58,6 +58,14 @@ public abstract class GetLogoUseCase {
         return strLogoBase64;
     }
 
+    public static void getLogoFromApi(Context context) {
+        ConfigurationRepository repository = new ConfigurationRepository(AppDatabase.getInstance(context));
+        Configuration urlImage = repository.readByName("url_image");
+        if (urlImage != null)
+            if (urlImage.value.length() != 0)
+                AsyncTaskGetLogoUseCase.execute(context, urlImage.value);
+    }
+
     private static class AsyncTaskGetLogoUseCase {
         static ExecutorService executorService = Executors.newSingleThreadExecutor();
         static Handler handler = new Handler(Looper.getMainLooper());

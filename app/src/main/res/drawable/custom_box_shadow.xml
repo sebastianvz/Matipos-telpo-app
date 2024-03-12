@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#FFFFFF"/> <!-- Background color of your TextView -->
+
+    <corners android:radius="10dp"/> <!-- If you want rounded corners -->
+
+    <padding
+        android:left="10dp"
+        android:top="10dp"
+        android:right="10dp"
+        android:bottom="10dp"/>
+
+    <!-- Shadow Settings -->
+    <gradient
+        android:startColor="#FFFFFFFF"
+        android:endColor="#5FFFFFFF"
+        android:angle="90"/>
+</shape>
