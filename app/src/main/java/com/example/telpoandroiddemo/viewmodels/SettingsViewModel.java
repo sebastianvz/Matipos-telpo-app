@@ -2,19 +2,17 @@ package com.example.telpoandroiddemo.viewmodels;
 
 import android.app.Application;
 import android.app.Dialog;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
-import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.example.telpoandroiddemo.infraestructure.database.AppDatabase;
+import com.example.telpoandroiddemo.infraestructure.database.persistence.AppDatabase;
 import com.example.telpoandroiddemo.domain.entities.Configuration;
-import com.example.telpoandroiddemo.domain.repository.ConfigurationRepository;
+import com.example.telpoandroiddemo.infraestructure.database.repository.ConfigurationRepository;
 
 import java.util.List;
 
@@ -32,7 +30,7 @@ public class SettingsViewModel extends ViewModel {
     public void createOrUpdateConfigurations(Context context, List<Configuration> configurations) {
         // repository.createOrUpdateConfiguration(configurations);
         ConfigurationRepository repository = new ConfigurationRepository(db);
-        new SaveDataTask(context, repository, "Save configurations").execute(configurations);
+        new SaveDataTask(context, repository).execute(configurations);
     }
 
     public LiveData<List<Configuration>> getAllConfigurations() {
@@ -43,14 +41,11 @@ public class SettingsViewModel extends ViewModel {
 
     public class SaveDataTask extends AsyncTask<List<Configuration>, Void, Boolean> {
         private final Context context;
-        private Dialog dialog;
-        private final String fileName;
         private final ConfigurationRepository repository;
 
-        public SaveDataTask(Context context, ConfigurationRepository repository, String fileName) {
+        public SaveDataTask(Context context, ConfigurationRepository repository) {
             this.context = context;
             this.repository = repository;
-            this.fileName = fileName;
         }
 
         @Override

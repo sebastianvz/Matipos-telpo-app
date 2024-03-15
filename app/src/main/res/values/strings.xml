@@ -30,4 +30,9 @@
     <string name="save_settings">Save Settings</string>
     <string name="go_to_settings_app">Go to settings app</string>
     <string name="open_qr">Open QR</string>
+    <string name="qr_image_button">QR ImageButton</string>
+    <string name="company_logo">Company Logo</string>
+    <string name="response_status">Response status</string>
+    <string name="my_code">My Code</string>
+    <string name="datetime">datetime</string>
 </resources>

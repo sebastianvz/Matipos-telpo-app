@@ -13,6 +13,7 @@
     <color name="colorPrimaryDark">#C41C73</color>
 
     <!--   a secondary color for controls like checkboxes and text fields. -->
-    <color name="colorAccent">#C2CACC</color>
+    <color name="colorAccent">#B1B8B8</color>
+
 
 </resources>

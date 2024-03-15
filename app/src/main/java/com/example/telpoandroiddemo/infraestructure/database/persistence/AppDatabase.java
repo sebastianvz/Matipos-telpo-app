@@ -1,4 +1,4 @@
-package com.example.telpoandroiddemo.infraestructure.database;
+package com.example.telpoandroiddemo.infraestructure.database.persistence;
 
 import android.content.Context;
 
@@ -6,8 +6,8 @@ import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
-import com.example.telpoandroiddemo.infraestructure.database.dao.ConfigurationDao;
-import com.example.telpoandroiddemo.infraestructure.database.dao.RecordLogsDao;
+import com.example.telpoandroiddemo.application.dao.ConfigurationDao;
+import com.example.telpoandroiddemo.application.dao.RecordLogsDao;
 import com.example.telpoandroiddemo.domain.entities.Configuration;
 import com.example.telpoandroiddemo.domain.entities.RecordLog;
 

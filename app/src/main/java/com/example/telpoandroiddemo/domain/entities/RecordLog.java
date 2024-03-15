@@ -4,6 +4,11 @@ import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
+import com.example.telpoandroiddemo.domain.models.MatiposReponse;
+import com.example.telpoandroiddemo.domain.models.MatiposRequest;
+
+import org.json.JSONObject;
+
 @Entity
 public class RecordLog {
     @PrimaryKey(autoGenerate = true)
@@ -23,4 +28,31 @@ public class RecordLog {
 
     @ColumnInfo(name = "response_datetime")
     public String responseDatetime;
+
+    public MatiposReponse getResponseModel() {
+        MatiposReponse reponse = null;
+        try {
+            JSONObject jsonObject = new JSONObject(responseData);
+            reponse = new MatiposReponse(
+                    (Boolean) jsonObject.get("status"),
+                    (String) jsonObject.get("address"),
+                    (String) jsonObject.get("date"),
+                    (String) jsonObject.get("ans")
+            );
+        } catch (Exception ignored) {}
+        return reponse;
+    }
+
+    public MatiposRequest getRequestModel() {
+        MatiposRequest request = null;
+        try {
+            JSONObject jsonObject = new JSONObject(requestData);
+            request = new MatiposRequest(
+                    (String) jsonObject.get("entryCode"),
+                    (String) jsonObject.get("macAddress"),
+                    (String) jsonObject.get("address")
+            );
+        } catch (Exception ignored) {}
+        return request;
+    }
 }
