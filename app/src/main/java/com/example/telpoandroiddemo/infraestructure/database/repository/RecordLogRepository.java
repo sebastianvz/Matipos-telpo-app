@@ -31,4 +31,18 @@ public class RecordLogRepository {
             });
         }
     }
+
+    public void purgeTable(Context context) {
+        new PurgeLogAsyncTask().execute(context);
+    }
+
+    private static class PurgeLogAsyncTask {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        public void execute(Context context) {
+            executorService.execute(() -> {
+                RecordLogsDao dao = AppDatabase.getInstance(context).recordLogsDao();
+                dao.purge();
+            });
+        }
+    }
 }

@@ -15,4 +15,8 @@ public class AuditViewModel extends ViewModel {
     public LiveData<List<RecordLog>> getRecordLogs(Context context) {
         return new RecordLogRepository().getRecordLogs(context);
     }
+
+    public void purgeTable(Context context) {
+        new RecordLogRepository().purgeTable(context);
+    }
 }

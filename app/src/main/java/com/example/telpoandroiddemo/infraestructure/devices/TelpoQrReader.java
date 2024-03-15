@@ -1,5 +1,6 @@
 package com.example.telpoandroiddemo.infraestructure.devices;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 
 import androidx.lifecycle.LiveData;
@@ -8,29 +9,29 @@ import androidx.lifecycle.MutableLiveData;
 import com.common.apiutil.ResultCode;
 import com.common.apiutil.decode.DecodeReader;
 import com.common.apiutil.util.SDKUtil;
-import com.common.callback.IDecodeReaderListener;
-import com.example.telpoandroiddemo.application.devices.TelpoDevices;
+import com.example.telpoandroiddemo.application.devices.ITelpoDevices;
 
 import java.nio.charset.StandardCharsets;
 
-public class Telpo implements TelpoDevices {
+public class TelpoQrReader implements ITelpoDevices {
 
-    private static Telpo instance;
+    @SuppressLint("StaticFieldLeak")
+    private static TelpoQrReader instance;
     private DecodeReader decodeReader;
     private final Context context;
     private Boolean isQrEnable;
 
     private MutableLiveData<String> code;
 
-    public static Telpo getInstance(Context context) {
+    public static TelpoQrReader getInstance(Context context) {
         if (instance == null)
         {
-            instance = new Telpo(context);
+            instance = new TelpoQrReader(context);
         }
         return instance;
     }
 
-    public Telpo(Context context) {
+    public TelpoQrReader(Context context) {
         this.isQrEnable = false;
         this.context = context;
         SDKUtil.getInstance(context).initSDK();
@@ -46,18 +47,14 @@ public class Telpo implements TelpoDevices {
             try {
                 isQrEnable = decodeReader.open(115200) == ResultCode.SUCCESS;
                 if (isQrEnable) {
-                    decodeReader.setDecodeReaderListener(new IDecodeReaderListener() {
-                        @Override
-                        public void onRecvData(byte[] bytes) {
-                            if (bytes.length != 0) {
-                                String strCode = new String(bytes, StandardCharsets.UTF_8);
-                                code.postValue(strCode.replace("\r\n", ""));
-                            }
+                    decodeReader.setDecodeReaderListener(bytes -> {
+                        if (bytes.length != 0) {
+                            String strCode = new String(bytes, StandardCharsets.UTF_8);
+                            code.postValue(strCode.replace("\r\n", ""));
                         }
                     });
                 }
-            } catch (Exception ignored) {
-            }
+            } catch (Exception ignored) {}
         }
     }
 
@@ -84,7 +81,7 @@ public class Telpo implements TelpoDevices {
     @Override
     public LiveData<String> codeData() {
         if (code == null)
-            code = new MutableLiveData<String>();
+            code = new MutableLiveData<>();
         return code;
     }
 }

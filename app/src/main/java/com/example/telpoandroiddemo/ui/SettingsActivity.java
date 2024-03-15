@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -82,14 +83,22 @@ public class SettingsActivity extends AppCompatActivity {
 
     private void onSaveSettings() {
         List<Configuration> configurations = new ArrayList<>();
-        configurations.add(new Configuration("url_base", String.valueOf(textInputEditTextUrlBase.getText())));
-        configurations.add(new Configuration("url_image", String.valueOf(textInputEditTextUrlImage.getText())));
-        configurations.add(new Configuration("seconds_in_green", String.valueOf(textInputEditTextSecondsInGreen.getText())));
-        configurations.add(new Configuration("seconds_in_red", String.valueOf(textInputEditTextSecondsInRed.getText())));
-        configurations.add(new Configuration("device_id", String.valueOf(textInputEditTextDeviceId.getText())));
-        configurations.add(new Configuration("nfc_status", switchMaterialNFC.isChecked() ? "ON" : "OFF"));
-        configurations.add(new Configuration("qr_status", switchMaterialQR.isChecked() ? "ON" : "OFF"));
-        viewModel.createOrUpdateConfigurations(SettingsActivity.this, configurations);
+        if (textInputEditTextUrlBase.getText().length() == 0 
+                || textInputEditTextUrlImage.getText().length() == 0 
+                || textInputEditTextSecondsInRed.getText().length() == 0
+                || textInputEditTextSecondsInGreen.getText().length() == 0
+                || textInputEditTextDeviceId.getText().length() == 0)
+            Toast.makeText(this, "All fields are required", Toast.LENGTH_SHORT).show();
+        else {
+            configurations.add(new Configuration("url_base", String.valueOf(textInputEditTextUrlBase.getText())));
+            configurations.add(new Configuration("url_image", String.valueOf(textInputEditTextUrlImage.getText())));
+            configurations.add(new Configuration("seconds_in_green", String.valueOf(textInputEditTextSecondsInGreen.getText())));
+            configurations.add(new Configuration("seconds_in_red", String.valueOf(textInputEditTextSecondsInRed.getText())));
+            configurations.add(new Configuration("device_id", String.valueOf(textInputEditTextDeviceId.getText())));
+            configurations.add(new Configuration("nfc_status", switchMaterialNFC.isChecked() ? "ON" : "OFF"));
+            configurations.add(new Configuration("qr_status", switchMaterialQR.isChecked() ? "ON" : "OFF"));
+            viewModel.createOrUpdateConfigurations(SettingsActivity.this, configurations);
+        }
     }
 
     private void setNewValues(List<Configuration> configurations) {

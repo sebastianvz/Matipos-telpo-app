@@ -36,5 +36,9 @@ public class Audit extends AppCompatActivity {
             finish();
         });
 
+        findViewById(R.id.btn_clear_table).setOnClickListener(v -> {
+            viewModel.purgeTable(Audit.this);
+        });
+
     }
 }
