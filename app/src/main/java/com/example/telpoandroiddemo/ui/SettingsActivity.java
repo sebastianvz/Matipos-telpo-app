@@ -4,8 +4,10 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -79,15 +81,22 @@ public class SettingsActivity extends AppCompatActivity {
             throw new RuntimeException(e);
         }
 
+        // Add OnEditorActionListener to texInput
+        textInputEditTextUrlBase.setOnEditorActionListener((v, actionId, event) -> hideKeyBoard(v, event));
+        textInputEditTextUrlImage.setOnEditorActionListener((v, actionId, event) -> hideKeyBoard(v, event));
+        textInputEditTextSecondsInRed.setOnEditorActionListener((v, actionId, event) -> hideKeyBoard(v, event));
+        textInputEditTextSecondsInGreen.setOnEditorActionListener((v, actionId, event) -> hideKeyBoard(v, event));
+        textInputEditTextDeviceId.setOnEditorActionListener((v, actionId, event) -> hideKeyBoard(v, event));
+
     }
 
     private void onSaveSettings() {
         List<Configuration> configurations = new ArrayList<>();
-        if (textInputEditTextUrlBase.getText().length() == 0 
-                || textInputEditTextUrlImage.getText().length() == 0 
-                || textInputEditTextSecondsInRed.getText().length() == 0
-                || textInputEditTextSecondsInGreen.getText().length() == 0
-                || textInputEditTextDeviceId.getText().length() == 0)
+        if (Objects.requireNonNull(textInputEditTextUrlBase.getText()).length() == 0
+                || Objects.requireNonNull(textInputEditTextUrlImage.getText()).length() == 0
+                || Objects.requireNonNull(textInputEditTextSecondsInRed.getText()).length() == 0
+                || Objects.requireNonNull(textInputEditTextSecondsInGreen.getText()).length() == 0
+                || Objects.requireNonNull(textInputEditTextDeviceId.getText()).length() == 0)
             Toast.makeText(this, "All fields are required", Toast.LENGTH_SHORT).show();
         else {
             configurations.add(new Configuration("url_base", String.valueOf(textInputEditTextUrlBase.getText())));
@@ -98,6 +107,8 @@ public class SettingsActivity extends AppCompatActivity {
             configurations.add(new Configuration("nfc_status", switchMaterialNFC.isChecked() ? "ON" : "OFF"));
             configurations.add(new Configuration("qr_status", switchMaterialQR.isChecked() ? "ON" : "OFF"));
             viewModel.createOrUpdateConfigurations(SettingsActivity.this, configurations);
+
+            finish();
         }
     }
 
@@ -127,5 +138,17 @@ public class SettingsActivity extends AppCompatActivity {
                     break;
             }
         }
+    }
+
+    private boolean hideKeyBoard(View v, KeyEvent event) {
+        if (event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
+            // Hide Keyboard
+            InputMethodManager imm = (InputMethodManager) v.getContext().getSystemService(MainActivity.INPUT_METHOD_SERVICE);
+            if (imm != null) {
+                imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+            }
+            return true;
+        }
+        return false;
     }
 }
