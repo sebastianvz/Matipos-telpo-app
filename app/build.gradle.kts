@@ -58,6 +58,6 @@ dependencies {
     // optional - Paging 3 Integration
     implementation("androidx.room:room-paging:2.6.1")
 
-
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
 
 }

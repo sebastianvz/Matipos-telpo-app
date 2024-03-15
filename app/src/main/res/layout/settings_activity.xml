@@ -133,7 +133,9 @@
             android:textSize="18sp"
             android:textStyle="bold"
             android:textColor="@color/mText"
-            android:text="@string/device_id"/>
+            android:inputType="textMultiLine|textFilter"
+            android:text="@string/device_id"
+            tools:ignore="TextViewEdits" />
 
         <com.google.android.material.textfield.TextInputEditText
             android:background="@drawable/rounded"
@@ -206,6 +208,16 @@
         android:layout_gravity="bottom|left"
         android:layout_margin="16dp"
         android:src="@drawable/home_black_24dp"
+        tools:ignore="RtlHardcoded"
+        android:contentDescription="@string/go_to_settings_app"/>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/btn_audit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|right"
+        android:layout_margin="16dp"
+        android:src="@drawable/baseline_checklist_24"
         tools:ignore="RtlHardcoded"
         android:contentDescription="@string/go_to_settings_app"/>
 

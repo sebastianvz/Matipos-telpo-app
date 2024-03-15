@@ -4,16 +4,15 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
+import android.view.Window;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.Observer;
 
 import com.example.telpoandroiddemo.R;
 import com.example.telpoandroiddemo.domain.entities.Configuration;
-import com.example.telpoandroiddemo.viewmodels.MainViewModel;
 import com.example.telpoandroiddemo.viewmodels.SettingsViewModel;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textfield.TextInputEditText;
@@ -35,10 +34,17 @@ public class SettingsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
-        hideSystemUI();
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.settings_activity);
+
+        Window window = this.getWindow();
+        window.setStatusBarColor(this.getResources().getColor(R.color.colorPrimaryDark, this.getTheme()));
+
+        View decorView = getWindow().getDecorView();
+        int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+        decorView.setSystemUiVisibility(uiOptions);
+
         viewModel = new SettingsViewModel(getApplication());
         textInputEditTextUrlBase = findViewById(R.id.url_base);
         textInputEditTextUrlImage = findViewById(R.id.url_image);
@@ -48,27 +54,19 @@ public class SettingsActivity extends AppCompatActivity {
         switchMaterialNFC = findViewById(R.id.nfc_reader);
         switchMaterialQR = findViewById(R.id.qr_code);
 
-        findViewById(R.id.btn_save_settings).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onSaveSettings();
-            }
+        findViewById(R.id.btn_save_settings).setOnClickListener(v -> onSaveSettings());
+
+        findViewById(R.id.btn_home).setOnClickListener(v -> {
+            if (!Objects.requireNonNull(viewModel.getAllConfigurations().getValue()).isEmpty())
+                finish();
         });
 
-        findViewById(R.id.btn_home).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!Objects.requireNonNull(viewModel.getAllConfigurations().getValue()).isEmpty())
-                    finish();
-            }
+        findViewById(R.id.btn_audit).setOnClickListener(v -> {
+            Intent intent = new Intent(this, Audit.class);
+            startActivity(intent);
         });
 
-        viewModel.getAllConfigurations().observe(this, new Observer<List<Configuration>>() {
-            @Override
-            public void onChanged(List<Configuration> configurations) {
-                setNewValues(configurations);
-            }
-        });
+        viewModel.getAllConfigurations().observe(this, this::setNewValues);
 
         PackageInfo packageInfo;
         try {
@@ -85,14 +83,22 @@ public class SettingsActivity extends AppCompatActivity {
 
     private void onSaveSettings() {
         List<Configuration> configurations = new ArrayList<>();
-        configurations.add(new Configuration("url_base", String.valueOf(textInputEditTextUrlBase.getText())));
-        configurations.add(new Configuration("url_image", String.valueOf(textInputEditTextUrlImage.getText())));
-        configurations.add(new Configuration("seconds_in_green", String.valueOf(textInputEditTextSecondsInGreen.getText())));
-        configurations.add(new Configuration("seconds_in_red", String.valueOf(textInputEditTextSecondsInRed.getText())));
-        configurations.add(new Configuration("device_id", String.valueOf(textInputEditTextDeviceId.getText())));
-        configurations.add(new Configuration("nfc_status", switchMaterialNFC.isChecked() ? "ON" : "OFF"));
-        configurations.add(new Configuration("qr_status", switchMaterialQR.isChecked() ? "ON" : "OFF"));
-        viewModel.createOrUpdateConfigurations(getApplicationContext(), configurations);
+        if (textInputEditTextUrlBase.getText().length() == 0 
+                || textInputEditTextUrlImage.getText().length() == 0 
+                || textInputEditTextSecondsInRed.getText().length() == 0
+                || textInputEditTextSecondsInGreen.getText().length() == 0
+                || textInputEditTextDeviceId.getText().length() == 0)
+            Toast.makeText(this, "All fields are required", Toast.LENGTH_SHORT).show();
+        else {
+            configurations.add(new Configuration("url_base", String.valueOf(textInputEditTextUrlBase.getText())));
+            configurations.add(new Configuration("url_image", String.valueOf(textInputEditTextUrlImage.getText())));
+            configurations.add(new Configuration("seconds_in_green", String.valueOf(textInputEditTextSecondsInGreen.getText())));
+            configurations.add(new Configuration("seconds_in_red", String.valueOf(textInputEditTextSecondsInRed.getText())));
+            configurations.add(new Configuration("device_id", String.valueOf(textInputEditTextDeviceId.getText())));
+            configurations.add(new Configuration("nfc_status", switchMaterialNFC.isChecked() ? "ON" : "OFF"));
+            configurations.add(new Configuration("qr_status", switchMaterialQR.isChecked() ? "ON" : "OFF"));
+            viewModel.createOrUpdateConfigurations(SettingsActivity.this, configurations);
+        }
     }
 
     private void setNewValues(List<Configuration> configurations) {
@@ -121,16 +127,5 @@ public class SettingsActivity extends AppCompatActivity {
                     break;
             }
         }
-    }
-
-    private void hideSystemUI() {
-        View decorView = getWindow().getDecorView();
-        decorView.setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_FULLSCREEN);
     }
 }

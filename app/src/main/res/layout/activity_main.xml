@@ -7,22 +7,24 @@
     android:background="@color/colorPrimaryDark">
 
     <LinearLayout
+        android:gravity="center"
         android:id="@+id/main_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <TextView
-            android:layout_gravity="center"
-            android:gravity="center"
-            android:textColor="@color/white"
-            android:textStyle="bold"
-            android:id="@+id/qr_code"
+        <ImageView
+            android:id="@+id/image_view"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="match_parent"
+            android:maxHeight="400dp"
+            android:maxWidth="300dp"
+            android:scaleType="center"
+            android:src="@drawable/logo"
+            android:layout_marginBottom="8dp"
+            android:contentDescription="@string/company_logo" />
 
     </LinearLayout>
-
 
     <TextView
         android:gravity="bottom|center"
