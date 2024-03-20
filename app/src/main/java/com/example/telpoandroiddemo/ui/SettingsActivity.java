@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
+import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -82,11 +83,11 @@ public class SettingsActivity extends AppCompatActivity {
         }
 
         // Add OnEditorActionListener to texInput
-        textInputEditTextUrlBase.setOnEditorActionListener((v, actionId, event) -> hideKeyBoard(v, event));
-        textInputEditTextUrlImage.setOnEditorActionListener((v, actionId, event) -> hideKeyBoard(v, event));
-        textInputEditTextSecondsInRed.setOnEditorActionListener((v, actionId, event) -> hideKeyBoard(v, event));
-        textInputEditTextSecondsInGreen.setOnEditorActionListener((v, actionId, event) -> hideKeyBoard(v, event));
-        textInputEditTextDeviceId.setOnEditorActionListener((v, actionId, event) -> hideKeyBoard(v, event));
+        textInputEditTextUrlBase.setOnEditorActionListener((v, actionId, event) -> hideKeyBoard(v, actionId));
+        textInputEditTextUrlImage.setOnEditorActionListener((v, actionId, event) -> hideKeyBoard(v, actionId));
+        textInputEditTextSecondsInRed.setOnEditorActionListener((v, actionId, event) -> hideKeyBoard(v, actionId));
+        textInputEditTextSecondsInGreen.setOnEditorActionListener((v, actionId, event) -> hideKeyBoard(v, actionId));
+        textInputEditTextDeviceId.setOnEditorActionListener((v, actionId, event) -> hideKeyBoard(v, actionId));
 
     }
 
@@ -140,15 +141,15 @@ public class SettingsActivity extends AppCompatActivity {
         }
     }
 
-    private boolean hideKeyBoard(View v, KeyEvent event) {
-        if (event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
-            // Hide Keyboard
-            InputMethodManager imm = (InputMethodManager) v.getContext().getSystemService(MainActivity.INPUT_METHOD_SERVICE);
-            if (imm != null) {
+    private boolean hideKeyBoard(View v, int actionId) {
+        if (actionId == EditorInfo.IME_ACTION_NEXT || actionId == EditorInfo.IME_ACTION_DONE) {
+            try {
+                InputMethodManager imm = (InputMethodManager) getSystemService(getApplicationContext().INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
-            }
+            } catch (Exception ignored) {}
             return true;
+        } else {
+            return false;
         }
-        return false;
     }
 }

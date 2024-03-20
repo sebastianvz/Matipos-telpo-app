@@ -61,6 +61,7 @@
             android:textColor="@color/colorPrimary"
             android:textStyle="bold"
             android:id="@+id/url_base"
+            android:inputType="textUri"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 
@@ -80,6 +81,7 @@
             android:textColor="@color/colorPrimary"
             android:textStyle="bold"
             android:id="@+id/url_image"
+            android:inputType="textUri"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 
@@ -142,6 +144,7 @@
             android:textColor="@color/colorPrimary"
             android:textStyle="bold"
             android:id="@+id/device_id"
+            android:inputType="textUri"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 
