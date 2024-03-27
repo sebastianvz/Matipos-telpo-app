@@ -37,7 +37,7 @@ public class MatiposService implements IMatiposService {
             URL url = new URL(urlBase);
             httpCon = (HttpURLConnection) url.openConnection();
             httpCon.setDoOutput(true);
-            httpCon.setRequestMethod("PUT");
+            httpCon.setRequestMethod("POST");
             httpCon.setRequestProperty("Content-Type", "application/json");
 
             // Set the connection timeout to 5000 milliseconds

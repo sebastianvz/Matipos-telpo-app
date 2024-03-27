@@ -35,4 +35,5 @@
     <string name="response_status">Response status</string>
     <string name="my_code">My Code</string>
     <string name="datetime">datetime</string>
+    <string name="audit">Audit</string>
 </resources>

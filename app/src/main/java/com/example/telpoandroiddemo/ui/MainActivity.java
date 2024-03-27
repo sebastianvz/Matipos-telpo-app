@@ -1,7 +1,6 @@
 package com.example.telpoandroiddemo.ui;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.annotation.SuppressLint;
@@ -46,7 +45,6 @@ public class MainActivity extends AppCompatActivity {
     private int secondsRed = 1000;
     private int secondsGreen = 500;
 
-    // TODO: Clear
     int counter = 0;
 
     @SuppressLint("SetTextI18n")
@@ -145,7 +143,9 @@ public class MainActivity extends AppCompatActivity {
         });
 
         viewModel.ValidateCodeResponse().observe(this, matiposReponse -> {
-            dialog.dismiss();
+            try {
+                dialog.dismiss();
+            } catch (Exception ignored) {}
 
             // Led
             ITelpoRGBLeds rgbLeds = new TelpoRGBLeds();
@@ -160,8 +160,6 @@ public class MainActivity extends AppCompatActivity {
             builder.setView(view);
             builder.setCancelable(false);
             LinearLayout linearLayout = view.findViewById(R.id.linea_layout);
-            TextView title = view.findViewById(R.id.title);
-            TextView message = view.findViewById(R.id.message);
             if (matiposReponse != null) {
                 ledColor = matiposReponse.getStatus() ? CommonConstants.LedColor.GREEN_LED : CommonConstants.LedColor.RED_LED;
                 ledSeconds = matiposReponse.getStatus() ? secondsGreen : secondsRed;
