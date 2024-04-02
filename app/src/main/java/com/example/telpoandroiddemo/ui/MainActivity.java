@@ -17,6 +17,8 @@ import android.os.SystemClock;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -27,7 +29,9 @@ import com.common.CommonConstants;
 import com.example.telpoandroiddemo.R;
 import com.example.telpoandroiddemo.application.devices.ITelpoRGBLeds;
 import com.example.telpoandroiddemo.domain.entities.Configuration;
+import com.example.telpoandroiddemo.domain.entities.User;
 import com.example.telpoandroiddemo.domain.models.MatiposReponse;
+import com.example.telpoandroiddemo.infraestructure.database.repository.UserRepository;
 import com.example.telpoandroiddemo.infraestructure.devices.TelpoRGBLeds;
 import com.example.telpoandroiddemo.viewmodels.MainViewModel;
 
@@ -67,8 +71,61 @@ public class MainActivity extends AppCompatActivity {
         imageView = findViewById(R.id.image_view);
 
         findViewById(R.id.btn_settings).setOnClickListener(v -> {
-            Intent intent = new Intent(v.getContext(), SettingsActivity.class);
-            startActivity(intent);
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+            LayoutInflater inflater = MainActivity.this.getLayoutInflater();
+            View view = inflater.inflate(R.layout.user_form_dialog, null);
+            view.setSystemUiVisibility(uiOptions);
+
+            // Read data
+            final EditText usernameEditText = view.findViewById(R.id.username);
+            final EditText passwordEditText = view.findViewById(R.id.password);
+
+            // Alert
+            builder.setCancelable(false);
+            builder.setTitle("Create New User");
+
+            builder.setPositiveButton("Done", (dialog, whichButton) -> {});
+
+            builder.setNegativeButton("Cancel", (dialog, whichButton) -> dialog.dismiss());
+
+            builder.setView(view);
+            dialog = builder.create();
+
+            dialog.setOnShowListener(dialog -> {
+
+                Button button = ((AlertDialog) dialog).getButton(AlertDialog.BUTTON_POSITIVE);
+                button.setOnClickListener(view1 -> {
+                    String username = usernameEditText.getText().toString();
+                    String password = passwordEditText.getText().toString();
+
+                    if (username.length() == 0 || password.length() < 6) {
+                        String message = password.length() < 6 ? "The password length cannot be less than 6" : "Username and password don't empty";
+                        Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
+                    }
+                    else {
+                        UserRepository repository = new UserRepository();
+                        User user = new User();
+                        user.username = username;
+                        user.password = password;
+                        User userNew = repository.readUserByUsername(MainActivity.this, user.username);
+                        if (userNew != null) {
+                            if (user.password.equals(userNew.password)) {
+                                Intent intent = new Intent(v.getContext(), SettingsActivity.class);
+                                startActivity(intent);
+                                dialog.dismiss();
+                            }
+                            else {
+                                Toast.makeText(MainActivity.this, "Error in Username or Password", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                        else {
+                            Toast.makeText(MainActivity.this, "User Does not exist", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+            });
+            dialog.show();
         });
 
         findViewById(R.id.main_layout).setOnClickListener(v -> {
@@ -82,8 +139,52 @@ public class MainActivity extends AppCompatActivity {
 
         viewModel.getAllConfigurations(MainActivity.this).observe(this, configurations -> {
             if (configurations.isEmpty()) {
-                Intent intent = new Intent(this, SettingsActivity.class);
-                startActivity(intent);
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                LayoutInflater inflater = MainActivity.this.getLayoutInflater();
+                View view = inflater.inflate(R.layout.user_form_dialog, null);
+                view.setSystemUiVisibility(uiOptions);
+
+
+                // Read data
+                final EditText usernameEditText = view.findViewById(R.id.username);
+                final EditText passwordEditText = view.findViewById(R.id.password);
+
+                // Alert
+                builder.setCancelable(false);
+                builder.setTitle("Create New User");
+                builder.setPositiveButton("Done", (dialog, whichButton) -> {});
+                builder.setView(view);
+                dialog = builder.create();
+
+                dialog.setOnShowListener(dialog -> {
+
+                    Button button = ((AlertDialog) dialog).getButton(AlertDialog.BUTTON_POSITIVE);
+                    button.setOnClickListener(view1 -> {
+                        String username = usernameEditText.getText().toString();
+                        String password = passwordEditText.getText().toString();
+
+                        if (username.length() == 0 || password.length() < 6) {
+                            String message = password.length() < 6 ? "The password length cannot be less than 6" : "Username and password don't empty";
+                            Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
+                        }
+                        else {
+                            UserRepository repository = new UserRepository();
+                            User user = new User();
+                            user.username = username;
+                            user.password = password;
+                            User userNew = repository.createUser(MainActivity.this, user);
+                            if (userNew != null) {
+                                Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+                                startActivity(intent);
+                                dialog.dismiss();
+                            }
+                            else {
+                                Toast.makeText(MainActivity.this, "Error in create new user", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
+                });
+                dialog.show();
             }
             else {
                  for (Configuration configuration : configurations) {
@@ -148,7 +249,7 @@ public class MainActivity extends AppCompatActivity {
             } catch (Exception ignored) {}
 
             // Led
-            ITelpoRGBLeds rgbLeds = new TelpoRGBLeds();
+            ITelpoRGBLeds rgbLed = new TelpoRGBLeds();
             int ledColor = CommonConstants.LedColor.WHITE_LED;
             int ledSeconds = secondsRed;
 
@@ -170,7 +271,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             // Turn ON Led
-            rgbLeds.toggle(MainActivity.this, CommonConstants.LedType.FILL_LIGHT_1, ledColor, ledSeconds);
+            rgbLed.toggle(MainActivity.this, CommonConstants.LedType.FILL_LIGHT_1, ledColor, ledSeconds);
 
             dialog = builder.create();
             dialog.show();
@@ -194,7 +295,7 @@ public class MainActivity extends AppCompatActivity {
                 imageView.setImageBitmap(bitmap);
             }
             else  {
-                Toast.makeText(MainActivity.this, "LogoBase65 is empty", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "LogoBase64 is empty", Toast.LENGTH_SHORT).show();
             }
         });
 
