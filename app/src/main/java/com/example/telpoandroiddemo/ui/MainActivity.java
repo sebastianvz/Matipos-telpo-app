@@ -10,11 +10,13 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
@@ -51,7 +53,9 @@ public class MainActivity extends AppCompatActivity {
 
     int counter = 0;
 
-    @SuppressLint("SetTextI18n")
+    private MediaPlayer mediaPlayerInfoMessage;
+
+    @SuppressLint({"SetTextI18n", "ClickableViewAccessibility"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -128,13 +132,29 @@ public class MainActivity extends AppCompatActivity {
             dialog.show();
         });
 
-        findViewById(R.id.main_layout).setOnClickListener(v -> {
-            counter++;
-            if (counter > 10) {
-                Toast.makeText(MainActivity.this, "Task, Get new Logo programming", Toast.LENGTH_SHORT).show();
-                counter = 0;
-                viewModel.refreshLogo(MainActivity.this);
+        findViewById(R.id.main_layout).setOnTouchListener((v, event) -> {
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN: // When button is pressed
+                    counter++;
+                    if (counter > 10) {
+                        Toast.makeText(MainActivity.this, "Task, Get new Logo programming", Toast.LENGTH_SHORT).show();
+                        counter = 0;
+                        viewModel.refreshLogo(MainActivity.this);
+                    }
+
+                    mediaPlayerInfoMessage = MediaPlayer.create(MainActivity.this, R.raw.info);
+                    mediaPlayerInfoMessage.start();
+                    break;
+
+                case MotionEvent.ACTION_UP: // When button is released
+                    if (mediaPlayerInfoMessage != null) {
+                        mediaPlayerInfoMessage.stop();
+                        mediaPlayerInfoMessage.release();
+                        mediaPlayerInfoMessage = null;
+                    }
+                    break;
             }
+            return true;
         });
 
         viewModel.getAllConfigurations(MainActivity.this).observe(this, configurations -> {
@@ -244,6 +264,8 @@ public class MainActivity extends AppCompatActivity {
         });
 
         viewModel.ValidateCodeResponse().observe(this, matiposReponse -> {
+            counter = 0;
+
             try {
                 dialog.dismiss();
             } catch (Exception ignored) {}
@@ -261,16 +283,27 @@ public class MainActivity extends AppCompatActivity {
             builder.setView(view);
             builder.setCancelable(false);
             LinearLayout linearLayout = view.findViewById(R.id.linea_layout);
+
+            if (mediaPlayerInfoMessage != null) {
+                mediaPlayerInfoMessage.stop();
+                mediaPlayerInfoMessage.release();
+                mediaPlayerInfoMessage = null;
+            }
+
+            // Message information
             if (matiposReponse != null) {
                 ledColor = matiposReponse.getStatus() ? CommonConstants.LedColor.GREEN_LED : CommonConstants.LedColor.RED_LED;
                 ledSeconds = matiposReponse.getStatus() ? secondsGreen : secondsRed;
                 linearLayout.setBackgroundResource(matiposReponse.getStatus() ? R.drawable.ok : R.drawable.no);
+                mediaPlayerInfoMessage = MediaPlayer.create(MainActivity.this, matiposReponse.getStatus() ? R.raw.ok : R.raw.no);
             }
             else {
                 linearLayout.setBackgroundResource(R.drawable.warning);
+                mediaPlayerInfoMessage = MediaPlayer.create(MainActivity.this, R.raw.warning);
             }
 
             // Turn ON Led
+            mediaPlayerInfoMessage.start();
             rgbLed.toggle(MainActivity.this, CommonConstants.LedType.FILL_LIGHT_1, ledColor, ledSeconds);
 
             dialog = builder.create();
@@ -343,6 +376,12 @@ public class MainActivity extends AppCompatActivity {
             viewModel.starNFCReader(MainActivity.this);
         else
             viewModel.stopNFCReader(MainActivity.this);
+
+        // Free media player messages
+        if (mediaPlayerInfoMessage != null) {
+            mediaPlayerInfoMessage.release();
+            mediaPlayerInfoMessage = null;
+        }
     }
 
     @Override
@@ -351,6 +390,12 @@ public class MainActivity extends AppCompatActivity {
         viewModel.getDevice(MainActivity.this).stopDecodeReader();
         viewModel.stopNFCReader(MainActivity.this);
         counter = 0;
+
+        // Free media player messages
+        if (mediaPlayerInfoMessage != null) {
+            mediaPlayerInfoMessage.release();
+            mediaPlayerInfoMessage = null;
+        }
     }
 
     @Override
@@ -359,6 +404,13 @@ public class MainActivity extends AppCompatActivity {
         viewModel.getDevice(MainActivity.this).stopDecodeReader();
         viewModel.stopNFCReader(MainActivity.this);
         counter = 0;
+
+        // Free media player messages
+        if (mediaPlayerInfoMessage != null) {
+            mediaPlayerInfoMessage.release();
+            mediaPlayerInfoMessage = null;
+        }
+
     }
 
     private class Dialog {
@@ -366,13 +418,25 @@ public class MainActivity extends AppCompatActivity {
         Handler handler = new Handler(Looper.getMainLooper());
         public void execute(MatiposReponse matiposReponse) {
             executorService.execute(() -> {
-                // TODO:
+
+                int timeout = secondsRed;
                 if (matiposReponse != null) {
-                    SystemClock.sleep(matiposReponse.getStatus() ? secondsGreen : secondsRed);
+                    timeout = matiposReponse.getStatus() ? secondsGreen : secondsRed;
                 }
-                else {
-                    SystemClock.sleep(secondsRed);
+                timeout /= 1000;
+
+                int secondsCounter = 0;
+                while (mediaPlayerInfoMessage.isPlaying() && secondsCounter < timeout) {
+                    SystemClock.sleep(1000);
+                    secondsCounter++;
                 }
+
+                if (mediaPlayerInfoMessage != null) {
+                    mediaPlayerInfoMessage.stop();
+                    mediaPlayerInfoMessage.release();
+                    mediaPlayerInfoMessage = null;
+                }
+
                 handler.post(() -> {
                     dialog.dismiss();
                     if (qrStatus)
@@ -384,5 +448,4 @@ public class MainActivity extends AppCompatActivity {
             });
         }
     }
-
 }
