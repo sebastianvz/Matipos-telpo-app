@@ -50,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
     private Boolean nfcStatus = false;
     private int secondsRed = 1000;
     private int secondsGreen = 500;
+    private String macAddress = "";
 
     int counter = 0;
 
@@ -138,12 +139,12 @@ public class MainActivity extends AppCompatActivity {
                     counter++;
                     if (counter > 10) {
                         Toast.makeText(MainActivity.this, "Task, Get new Logo programming", Toast.LENGTH_SHORT).show();
-                        counter = 0;
                         viewModel.refreshLogo(MainActivity.this);
+                        counter = 0;
+                    } else {
+                        mediaPlayerInfoMessage = MediaPlayer.create(MainActivity.this, R.raw.info);
+                        mediaPlayerInfoMessage.start();
                     }
-
-                    mediaPlayerInfoMessage = MediaPlayer.create(MainActivity.this, R.raw.info);
-                    mediaPlayerInfoMessage.start();
                     break;
 
                 case MotionEvent.ACTION_UP: // When button is released
@@ -229,6 +230,10 @@ public class MainActivity extends AppCompatActivity {
                          case "seconds_in_red":
                              secondsRed = Integer.parseInt(configuration.value) * 1000;
                              break;
+
+                         case "device_id":
+                             macAddress = configuration.value;
+                             break;
                      }
                  }
             }
@@ -259,7 +264,7 @@ public class MainActivity extends AppCompatActivity {
                 dialog.show();
 
                 // Go to Server
-                viewModel.ValidateCode(MainActivity.this, s);
+                viewModel.ValidateCode(MainActivity.this, s, macAddress);
             }
         });
 
@@ -291,7 +296,9 @@ public class MainActivity extends AppCompatActivity {
             }
 
             // Message information
-            if (matiposReponse != null) {
+            if (matiposReponse.getStatus() != null) {
+                TextView textView = linearLayout.findViewById(R.id.title);
+                textView.setText(matiposReponse.getAns());
                 ledColor = matiposReponse.getStatus() ? CommonConstants.LedColor.GREEN_LED : CommonConstants.LedColor.RED_LED;
                 ledSeconds = matiposReponse.getStatus() ? secondsGreen : secondsRed;
                 linearLayout.setBackgroundResource(matiposReponse.getStatus() ? R.drawable.ok : R.drawable.no);
@@ -299,7 +306,10 @@ public class MainActivity extends AppCompatActivity {
             }
             else {
                 linearLayout.setBackgroundResource(R.drawable.warning);
+                TextView textView = linearLayout.findViewById(R.id.title);
+                textView.setText(matiposReponse.getAns());
                 mediaPlayerInfoMessage = MediaPlayer.create(MainActivity.this, R.raw.warning);
+                matiposReponse = null;
             }
 
             // Turn ON Led
@@ -356,7 +366,7 @@ public class MainActivity extends AppCompatActivity {
             dialog.show();
 
             // Go to Server
-            viewModel.ValidateCode(MainActivity.this, s);
+            viewModel.ValidateCode(MainActivity.this, s, macAddress);
         });
     }
 
@@ -426,7 +436,7 @@ public class MainActivity extends AppCompatActivity {
                 timeout /= 1000;
 
                 int secondsCounter = 0;
-                while (mediaPlayerInfoMessage.isPlaying() && secondsCounter < timeout) {
+                while (mediaPlayerInfoMessage.isPlaying() || secondsCounter < timeout) {
                     SystemClock.sleep(1000);
                     secondsCounter++;
                 }
