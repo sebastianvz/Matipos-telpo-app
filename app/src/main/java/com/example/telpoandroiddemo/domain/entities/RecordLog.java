@@ -48,9 +48,9 @@ public class RecordLog {
         try {
             JSONObject jsonObject = new JSONObject(requestData);
             request = new MatiposRequest(
-                    (String) jsonObject.get("entryCode"),
+                    (String) jsonObject.get("code"),
                     (String) jsonObject.get("macAddress"),
-                    (String) jsonObject.get("address")
+                    (String) jsonObject.get("direction")
             );
         } catch (Exception ignored) {}
         return request;
