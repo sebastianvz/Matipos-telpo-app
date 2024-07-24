@@ -9,7 +9,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.telpoandroiddemo.R;
 import com.example.telpoandroiddemo.domain.entities.RecordLog;
-import com.example.telpoandroiddemo.ui.AuditViewHolder;
 
 import java.util.List;
 
@@ -31,14 +30,16 @@ public class AuditAdapter extends RecyclerView.Adapter<AuditViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull AuditViewHolder holder, int position) {
-        holder.codeView.setText(items.get(position).getRequestModel().getEntryCode());
-        holder.datetimeView.setText(items.get(position).requestDatetime);
-
         try {
-            holder.imageView.setBackgroundResource(items.get(position).getResponseModel().getStatus() ? R.drawable.ok : R.drawable.no);
-        } catch (Exception e) {
-            holder.imageView.setBackgroundResource(R.drawable.warning);
-        }
+            holder.codeView.setText(items.get(position).getRequestModel().getEntryCode());
+            holder.datetimeView.setText(items.get(position).requestDatetime);
+
+            try {
+                holder.imageView.setBackgroundResource(items.get(position).getResponseModel().getStatus() ? R.drawable.ok : R.drawable.no);
+            } catch (Exception e) {
+                holder.imageView.setBackgroundResource(R.drawable.warning);
+            }
+        } catch (Exception ignored) {}
     }
 
     @Override

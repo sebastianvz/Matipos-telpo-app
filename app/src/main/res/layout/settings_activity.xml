@@ -61,6 +61,7 @@
             android:textColor="@color/colorPrimary"
             android:textStyle="bold"
             android:id="@+id/url_base"
+            android:inputType="textUri"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 
@@ -80,6 +81,7 @@
             android:textColor="@color/colorPrimary"
             android:textStyle="bold"
             android:id="@+id/url_image"
+            android:inputType="textUri"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 
@@ -142,6 +144,7 @@
             android:textColor="@color/colorPrimary"
             android:textStyle="bold"
             android:id="@+id/device_id"
+            android:inputType="textUri"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 
@@ -155,11 +158,12 @@
             android:id="@+id/nfc_reader"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="@color/mText"
+            android:backgroundTint="@color/white"
             android:checked="false"
             android:text="@string/nfc_reader"
-            android:textStyle="bold"
-            android:textSize="18sp"/>
+            android:textColor="@color/mText"
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
         <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/qr_code"
@@ -169,6 +173,8 @@
             android:checked="false"
             android:text="@string/qr_reader"
             android:textStyle="bold"
+            android:shadowColor="@color/white"
+            android:backgroundTint="@color/white"
             android:textSize="18sp"/>
 
         <LinearLayout
@@ -208,6 +214,7 @@
         android:layout_gravity="bottom|left"
         android:layout_margin="16dp"
         android:src="@drawable/home_black_24dp"
+        android:backgroundTint="@color/white"
         tools:ignore="RtlHardcoded"
         android:contentDescription="@string/go_to_settings_app"/>
 
@@ -218,6 +225,7 @@
         android:layout_gravity="bottom|right"
         android:layout_margin="16dp"
         android:src="@drawable/baseline_checklist_24"
+        android:backgroundTint="@color/white"
         tools:ignore="RtlHardcoded"
         android:contentDescription="@string/go_to_settings_app"/>
 

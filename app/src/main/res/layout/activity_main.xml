@@ -43,6 +43,7 @@
         android:layout_gravity="bottom|right"
         android:layout_margin="16dp"
         tools:ignore="RtlHardcoded"
+        android:backgroundTint="@color/white"
         android:src="@drawable/baseline_admin_panel_settings_24"
         android:contentDescription="@string/go_to_settings_app"/>
 

@@ -64,8 +64,8 @@ public class MainViewModel extends ViewModel {
         GetLogoUseCase.getLogoFromApi(context);
     }
 
-    public void ValidateCode(Context context, String code) {
-        validateCodeUseCase.execute(context, code);
+    public void ValidateCode(Context context, String code, String macAddress) {
+        validateCodeUseCase.execute(context, code, macAddress);
     }
 
     public LiveData<MatiposReponse> ValidateCodeResponse() {

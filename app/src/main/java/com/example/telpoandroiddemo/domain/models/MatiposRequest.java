@@ -29,9 +29,9 @@ public class MatiposRequest {
     @Override
     public String toString() {
         return "{\r\n" + //
-                "  \"entryCode\": \"" + entryCode + "\",\r\n" + //
+                "  \"code\": \"" + entryCode + "\",\r\n" + //
                 "  \"macAddress\": \"" + macAddress + "\",\r\n" + //
-                "  \"address\": \"" + address + "\"\r\n" + //
+                "  \"direction\": \"" + address + "\"\r\n" + //
                 "}";
     }
 }

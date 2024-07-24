@@ -4,20 +4,19 @@ import com.example.telpoandroiddemo.application.services.IMatiposService;
 import com.example.telpoandroiddemo.domain.models.MatiposReponse;
 import com.example.telpoandroiddemo.domain.models.MatiposRequest;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
-import java.util.Base64;
 
 public class MatiposService implements IMatiposService {
 
@@ -30,14 +29,14 @@ public class MatiposService implements IMatiposService {
     }
 
     @Override
-    public MatiposReponse sendPutRequest(String urlBase, MatiposRequest request) throws SocketTimeoutException {
+    public MatiposReponse sendPostRequest(String urlBase, MatiposRequest request) throws SocketTimeoutException {
         HttpURLConnection httpCon = null;
-        MatiposReponse matiposReponse = null;
+        MatiposReponse matiposReponse;
         try {
             URL url = new URL(urlBase);
             httpCon = (HttpURLConnection) url.openConnection();
             httpCon.setDoOutput(true);
-            httpCon.setRequestMethod("PUT");
+            httpCon.setRequestMethod("POST");
             httpCon.setRequestProperty("Content-Type", "application/json");
 
             // Set the connection timeout to 5000 milliseconds
@@ -64,52 +63,56 @@ public class MatiposService implements IMatiposService {
                         outputStream.write(buf, 0, readLen);
                     String response = outputStream.toString();
                     JSONObject jsonObject = new JSONObject(response);
-                        matiposReponse  = new MatiposReponse(
-                                (Boolean) jsonObject.get("status"),
-                                (String) jsonObject.get("address"),
-                                (String) jsonObject.get("date"),
-                                (String) jsonObject.get("answer")
-                        );
+                    matiposReponse = new MatiposReponse(
+                            (Boolean) jsonObject.get("state"),
+                            (String) jsonObject.get("direction"),
+                            (String) jsonObject.get("date"),
+                            (String) jsonObject.get("answer")
+                    );
                     break;
+
                 case HttpURLConnection.HTTP_CREATED:
-                    // TODO
-                    System.out.println("Request successful. New resource created.");
-                    break;
+                    throw new RuntimeException("Request successful. New resource created.");
+
                 case HttpURLConnection.HTTP_BAD_REQUEST:
-                    // TODO
-                    System.out.println("Bad Request!");
-                    break;
+                    InputStream errorStream = httpCon.getErrorStream();
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream));
+                    String line;
+                    StringBuilder responseBuilder = new StringBuilder();
+                    while ((line = reader.readLine()) != null) {
+                        responseBuilder.append(line);
+                    }
+                    reader.close();
+                    String errorResponse = responseBuilder.toString();
+                    JSONObject jsonData = new JSONObject(errorResponse);
+
+                    String errorMessage = (String) jsonData.get("message");
+                    throw new RuntimeException(errorMessage);
+
                 case HttpURLConnection.HTTP_UNAUTHORIZED:
-                    // TODO
-                    System.out.println("Unauthorized!");
-                    break;
+                    throw new RuntimeException("Unauthorized!");
+
                 case HttpURLConnection.HTTP_FORBIDDEN:
-                    // TODO
-                    System.out.println("Forbidden!");
-                    break;
+                    throw new RuntimeException("Forbidden!");
+
                 case HttpURLConnection.HTTP_NOT_FOUND:
-                    // TODO
-                    System.out.println("Resource not found!");
-                    break;
+                    throw new RuntimeException("Resource not found!");
+
                 default:
-                    // TODO
-                    System.out.println("Response Code : " + responseCode);
-                    break;
+                    throw new RuntimeException("Response Code : " + responseCode);
             }
 
         } catch (MalformedURLException e) {
-            // TODO
-            System.out.println("Malformed URL: " + e.getMessage());
+            throw new RuntimeException("Malformed URL: " + e.getMessage());
         } catch (IOException e) {
-            // TODO
-            System.out.println("IO Exception: " + e.getMessage());
-            // raise timeout exception
             if (e instanceof java.net.SocketTimeoutException) {
-                throw new java.net.SocketTimeoutException("Connection timed out");
+                throw new RuntimeException("Connection timed out");
+            }
+            else {
+                throw new RuntimeException(e.getMessage());
             }
         } catch (JSONException e) {
-            // TODO
-            System.out.println("JSONException: " + e.getMessage());
+            throw new RuntimeException(e.getMessage());
         } finally {
             if (httpCon != null) {
                 httpCon.disconnect();

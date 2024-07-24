@@ -29,10 +29,10 @@ public class ValidateCodeUseCase {
     public ValidateCodeUseCase() {
     }
 
-    public void execute(Context context, String code) {
+    public void execute(Context context, String code, String macAddress) {
         // Build request model
         // TODO: Read device MAC Address
-        MatiposRequest request = new MatiposRequest(code, "MAC", "null");
+        MatiposRequest request = new MatiposRequest(code, macAddress, "");
 
         // Execute Task
         new AsyncValidateCodeUseCase().execute(context, request);
@@ -57,20 +57,29 @@ public class ValidateCodeUseCase {
                 log.requestDatetime = LocalDateTime.now().toString();
 
                 MatiposReponse matiposReponse = null;
+                String errorMessage = "NULL";
                 ConfigurationRepository repository = new ConfigurationRepository(AppDatabase.getInstance(context));
                 Configuration configuration = repository.readByName("url_base");
                 if (configuration != null) {
                     try {
-                        matiposReponse = MatiposService.getInstance().sendPutRequest(configuration.value, matiposRequest);
-                    } catch (SocketTimeoutException ignored) {}
+                        matiposReponse = MatiposService.getInstance().sendPostRequest(configuration.value, matiposRequest);
+                    } catch (SocketTimeoutException ignored) {
+                        errorMessage = ignored.getMessage();
+                    } catch (RuntimeException e) {
+                        errorMessage = e.getMessage();
+                    }
                 }
 
                 // TODO: Save log
-                log.responseData = matiposReponse == null ? "NULL" : matiposReponse.toString();
+                log.responseData = matiposReponse == null ? errorMessage : matiposReponse.toString();
                 log.responseDatetime = LocalDateTime.now().toString();
 
                 RecordLogRepository recordLogRepository = new RecordLogRepository();
                 recordLogRepository.InsertLog(context, log);
+
+                if (matiposReponse == null) {
+                    matiposReponse = new MatiposReponse(null, null, null, errorMessage);
+                }
 
                 MatiposReponse finalMatiposReponse = matiposReponse;
                 handler.post(() -> {
