@@ -1,0 +1,283 @@
+<resources>
+    <string name="app_name">Matipos-App</string>
+
+
+    <!--通用提示-->
+    <string name="loading">Loading…</string>
+    <string name="please_wait">Please wait…</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="undo">Undo</string>
+    <string name="stopped">Stopped</string>
+    <string name="stop">Stop</string>
+    <string name="notice">Notice</string>
+
+    <!--README相关-->
+    <string name="title_introduction">Introduction</string>
+    <string name="desc_scale_value">Scale parameter description</string>
+    <string name="desc_orient">Detection angle description</string>
+    <string name="desc_detect_mode">Detection mode description</string>
+    <string name="desc_error_code">Error code description</string>
+    <string name="desc_face_rect_comparison">Instructions for drawing the face frame (need to be activated first)</string>
+
+    <string name="original_preview_data">Original image data\n(not rotated, mirrored, only scaled)</string>
+    <string name="adapted_preview_data">Preview screen after adaptation\n(may be rotated, mirrored, zoomed)</string>
+    <string name="rect_not_adapted_for_draw">Unfit, directly used face frame</string>
+    <string name="rect_adapted_for_draw">Face frame drawn after adaptation</string>
+
+
+    <!--激活相关-->
+    <string name="active_engine">Activation engine</string>
+    <string name="active_success">Activation engine success</string>
+    <string name="active_failed">Engine activation failed</string>
+    <string name="not_activated">SDK is not activated</string>
+    <string name="app_id">appId</string>
+    <string name="sdk_key">sdkKey</string>
+    <string name="active_key">activeKey</string>
+    <string name="active_online">Online activation</string>
+    <string name="active_offline">Offline activation</string>
+    <string name="copy_device_finger">Copy fingerprint</string>
+    <string name="description_copy_device_finger">Copy the device fingerprint to the clipboard, store it in a local file, upload it to the open platform to generate an offline authorization file for offline activation</string>
+    <string name="device_info_copied">Device fingerprint:\n%s\ncopied</string>
+    <string name="get_device_finger_failed">Failed to obtain device fingerprint, error code: %d</string>
+    <string name="notice_please_active_before_use">SDK is not activated, please use it after activation!</string>
+    <string name="read_local_config_and_active">Read local configuration file and activate</string>
+    <string name="notice_active_online">In a networked environment, it supports online activation and can read local configuration files. The local configuration file path is: /sdcard/activeConfig.txt, format:\nAPP_ID:XXXXXXXXXXXXXXX\nSDK_KEY:XXXXXXXXXXXXXXX\nACTIVE_KEY:XXXX-XXXX-XXXX-XXXX</string>
+    <string name="notice_active_offline">Support offline activation in no network environment, Please make sure there is ArcFacePro32.dat in the root directory of device</string>
+    <string name="active_file_name">ArcFacePro32.dat</string>
+    <string name="read_config_failed">Failed to read local file, please check the format</string>
+
+
+    <!--界面适配-->
+    <string name="recognize_settings">Parameter Settings</string>
+
+    <!--动态库相关-->
+    <string name="library_not_found">The library file is not found, please check whether the .so file is placed in the app\src\main\jniLibs directory of the project</string>
+
+    <!--各个界面获取本地图片失败提示-->
+    <string name="get_picture_failed">Failed to get picture</string>
+
+    <!--各个界面获取权限失败时的提示-->
+    <string name="permission_denied">Permission denied!</string>
+
+    <!--各个界面引擎初始化失败的提示-->
+    <string name="init_failed">Engine initialization failed, error code: %d, error code constant name: %s</string>
+    <string name="engine_not_initialized">The engine is not initialized, the error code is %d</string>
+
+    <!--人脸属性检测（图片） 界面-->
+    <string name="start_process">Attribute Analysis</string>
+    <string name="choose_local_image">Choose a local picture</string>
+    <string name="processing">Processing</string>
+
+    <!--单目、双目识别注册界面-->
+    <string name="register">Register</string>
+    <string name="switch_camera">Switch camera</string>
+    <string name="switch_camera_failed">Failed to switch camera</string>
+    <string name="recognize_failed_notice">Failed: %s</string>
+    <string name="recognize_success_notice">Pass: %s</string>
+    <string name="low_confidence_level">face low confidence level</string>
+    <string name="specific_engine_init_failed">%s failed to initialize, error code: %d\nerror code constant name: %s</string>
+    <string name="notice_change_detect_degree">The camera has been switched, if the face cannot be detected, you need to modify the video mode face detection angle in the configuration interface</string>
+    <string name="liveness_detect">Liveness detection</string>
+    <string name="camera_rgb">RGB CAMERA</string>
+    <string name="camera_ir">IR CAMERA</string>
+    <string name="camera_rgb_preview_size">RGB CAMERA\n%dx%d</string>
+    <string name="camera_ir_preview_size">IR CAMERA\n%dx%d</string>
+    <string name="camera_error_notice">\nPossible reason: the device does not support opening two cameras at the same time</string>
+    <string name="draw_ir_rect_mirror_horizontal">IR face frame horizontal mirroring drawing</string>
+    <string name="draw_ir_rect_mirror_vertical">IR face frame vertical mirror drawing</string>
+
+    <!--配置、功能选择界面-->
+    <string name="page_readme">Introduction</string>
+    <string name="page_ir_face_recognize">Face recognition</string>
+    <string name="page_liveness_detect">Liveness detection</string>
+    <string name="page_single_image">Face attributes</string>
+    <string name="page_face_compare">Picture 1:1 comparison</string>
+    <string name="page_face_manage">Face management</string>
+    <string name="page_settings">Parameter Settings</string>
+    <string name="page_debug">Exception analysis</string>
+    <string name="page_calculate_data_length">Calculate data length</string>
+
+
+    <!-- 人脸管理-->
+    <string name="tip_no_registered_face">Unregistered faces, please click the icon in the lower right corner to register,\nThe default directory for storing images to be registered in batches: %s</string>
+    <string name="please_put_photos">Please put the face photos that need to be registered in the \n%s\n directory</string>
+    <string name="label_face_id">id: %d</string>
+    <string name="dialog_title_change_name">Edit name</string>
+    <string name="name_should_not_be_empty">The name cannot be empty</string>
+    <string name="register_success">Registration success</string>
+    <string name="register_failed">Registration fail</string>
+    <string name="face_cleared">Face library has been emptied</string>
+    <string name="face_deleted">Deleted</string>
+    <string name="register_select_from_album">Select photo registration</string>
+    <string name="batch_register_from_file">Local batch registration</string>
+    <string name="clear_all_faces">Clear all faces</string>
+    <string name="registering_please_wait">Registering, please wait</string>
+    <string name="register_progress">Current/Failed/All: %d / %d / %d</string>
+
+    <!--人脸比对1:n（图片vs图片） 界面-->
+    <string name="choose_main_image">Select registration photo</string>
+    <string name="add_item_image">Add recognition photo</string>
+    <string name="notice_choose_main_img">Please select the photo that needs to be registered first</string>
+    <string name="notice_register_image_no_mask">Registration photo requires no masks</string>
+    <string name="compare_failed">The comparison failed, the error code is %d</string>
+
+    <!-- 错误信息收集界面-->
+    <string name="dump_error_cannot_detect_faces">Abnormal face detection</string>
+    <string name="dump_liveness_info">Liveness recognition information</string>
+    <string name="dump_extract_failed">Feature extraction abnormal</string>
+    <string name="dump_recognize_failed">Face recognition failed</string>
+    <string name="dump_performance_info">Recognition time-consuming data</string>
+
+    <!-- 图像大小计算-->
+    <string name="notice_input_width">Please enter image width</string>
+    <string name="large_resolution_not_recommended">It is not recommended to use too large resolution images</string>
+    <string name="width_must_be_multiple_of_4">The width must be a multiple of 4</string>
+    <string name="notice_input_height">Please enter image height</string>
+    <string name="calculate">Calculate</string>
+    <string name="image_width">Image width</string>
+    <string name="image_height">Image height</string>
+    <string name="threshold_value_illegal">Illegal threshold</string>
+    <string name="interger_value_illegal">Illegal value</string>
+
+
+    <!-- 配置 -->
+
+    <string name="ft_op_0">only detect 0 degree in video mode</string>
+    <string name="ft_op_90">only detect 90 degree in video mode</string>
+    <string name="ft_op_180">only detect 180 degree in video mode</string>
+    <string name="ft_op_270">only detect 270 degree in video mode</string>
+    <string name="ft_op_all">detect all degrees in video mode</string>
+
+    <string name="dialog_delete_face_config">Are you sure to delete the face of \'%s\'?</string>
+    <string name="label_face_manage">Face management</string>
+
+    <!-- 配置的小标题 -->
+    <string name="settings_preview_adapt">Camera preview settings</string>
+    <string name="settings_recognize_orient">Recognition angle setting</string>
+    <string name="settings_liveness">Liveness detection settings</string>
+    <string name="setting_recognize">Recognition settings</string>
+    <string name="settings_recognize_scale">Face detection size setting</string>
+    <string name="title_image_quality_detect">Image quality inspection settings</string>
+    <string name="title_face_size_limit">Face size limit during recognition</string>
+    <string name="title_face_move_limit">Face movement restriction during recognition</string>
+    <string name="title_camera_preview_adapt">Camera resolution, angle, etc. adaptation</string>
+
+    <!-- 配置的key-->
+    <string name="preference_switch_camera">switch_camera</string>
+    <string name="preference_dual_camera_offset_horizontal">dual_camera_offset_horizontal</string>
+    <string name="preference_dual_camera_offset_vertical">dual_camera_offset_vertical</string>
+    <string name="preference_draw_rgb_rect_horizontal_mirror">draw_rgb_rect_horizontal_mirror</string>
+    <string name="preference_draw_rgb_rect_vertical_mirror">draw_rgb_rect_vertical_mirror</string>
+    <string name="preference_draw_ir_rect_horizontal_mirror">draw_ir_rect_horizontal_mirror</string>
+    <string name="preference_draw_ir_rect_vertical_mirror">draw_ir_rect_vertical_mirror</string>
+    <string name="preference_rgb_preview_horizontal_mirror">rgb_preview_horizontal_mirror</string>
+    <string name="preference_ir_preview_horizontal_mirror">ir_preview_horizontal_mirror</string>
+    <string name="preference_rgb_camera_rotation">rgb_camera_rotation</string>
+    <string name="preference_ir_camera_rotation">ir_camera_rotation</string>
+    <string name="preference_liveness_detect_type">liveness_detect_type</string>
+    <string name="preference_rgb_liveness_detect">rgb_liveness_detect</string>
+    <string name="preference_ir_liveness_detect">ir_liveness_detect</string>
+    <string name="preference_recognize_keep_max_face">keep_max_face</string>
+    <string name="preference_recognize_limit_recognize_area">limit_recognize_area</string>
+    <string name="preference_recognize_max_detect_num">max_detect_num</string>
+    <string name="preference_recognize_scale_value">scale_value</string>
+    <string name="preference_choose_detect_degree">choose_detect_degree</string>
+    <string name="preference_track_face_count">track_face_count</string>
+    <string name="preference_recognize_threshold">recognize_threshold</string>
+    <string name="preference_recognize_face_size_limit">recognize_face_size_limit</string>
+    <string name="preference_recognize_move_pixel_limit">recognize_move_pixel_limit</string>
+    <string name="preference_rgb_liveness_threshold">rgb_liveness_threshold</string>
+    <string name="preference_ir_liveness_threshold">ir_liveness_threshold</string>
+    <string name="preference_dual_camera_preview_size">dual_camera_preview_size</string>
+    <string name="preference_app_id">app_id</string>
+    <string name="preference_sdk_key">sdk_key</string>
+    <string name="preference_active_key">active_key</string>
+    <string name="preference_enable_image_quality_detect">enable_image_quality_detect</string>
+    <string name="preference_enable_face_size_limit">enable_face_size_limit</string>
+    <string name="preference_enable_face_move_limit">enable_face_move_limit</string>
+    <string name="preference_image_quality_no_mask_recognize_threshold">image_quality_no_mask_recognize_threshold</string>
+    <string name="preference_image_quality_no_mask_register_threshold">image_quality_no_mask_register_threshold</string>
+    <string name="preference_image_quality_mask_recognize_threshold">image_quality_mask_recognize_threshold</string>
+
+    <!-- 识别相关的配置项-->
+    <string name="title_choose_detect_degree">Select the detection angle in video mode</string>
+    <string name="title_liveness_detect_type">Liveness detection mode</string>
+    <string name="title_rgb_threshold">RGB liveness detection threshold</string>
+    <string name="title_ir_threshold">IR liveness detection threshold</string>
+    <string name="title_recognize_face_count_limit">Recognition of the number of faces on the same screen</string>
+    <string name="title_max_detect_face_num">Maximum number of face detections on the recognition interface</string>
+    <string name="title_recognize_scale_value">Minimum face ratio during recognition (image long side / face width)</string>
+    <string name="title_recognize_area_limit">Recognition area restrictions</string>
+    <string name="title_recognize_threshold">Recognition threshold</string>
+    <string name="title_recognize_face_side_length_limit">Face size limit (px)</string>
+    <string name="title_recognize_face_move_pixel_limit">Limit on the number of pixels that the face moves per frame</string>
+    <!-- 相机适配相关的配置项-->
+    <string name="title_rgb_preview_additional_rotation">RGB preview additional rotation angle</string>
+    <string name="title_ir_preview_additional_rotation">IR preview additional rotation angle</string>
+    <string name="title_draw_rect_adaptation">Face frame drawing adaptation</string>
+    <string name="title_dual_camera_data_offset">Binocular offset (based on image, not View)</string>
+    <string name="title_dual_camera_data_offset_horizontal">Binocular horizontal offset pixel</string>
+    <string name="title_dual_camera_data_offset_vertical">Binocular vertical offset pixel</string>
+    <string name="title_camera_preview_adaption">Camera preview adaptation</string>
+    <string name="title_mirror_draw_rgb_rect_horizontal">Draw RGB face frame horizontally and mirrored</string>
+    <string name="title_mirror_draw_rgb_rect_vertical">Draw RGB face frame vertically and mirrored</string>
+    <string name="title_mirror_draw_ir_rect_horizontal">Draw IR face frame horizontally and mirrored</string>
+    <string name="title_mirror_draw_ir_rect_vertical">Draw IR face frame vertically and mirrored</string>
+    <string name="title_rgb_preview_horizontal_mirror">RGB data preview</string>
+    <string name="title_ir_preview_horizontal_mirror">IR data preview</string>
+    <string name="title_switch_camera">Switch camera</string>
+    <string name="title_dual_camera_preview_size">Binocular resolution</string>
+    <string name="title_image_quality_no_mask_recognize_threshold">Image quality threshold: face recognition scene without mask</string>
+    <string name="title_image_quality_no_mask_register_threshold">Image quality threshold: no mask, face registration scene</string>
+    <string name="title_image_quality_mask_recognize_threshold">Image quality threshold: wearing a mask, face recognition scene</string>
+
+
+    <string name="description_recognize_keep_max_face">Only recognize the largest face</string>
+    <string name="description_recognize_not_keep_max_face">Recognize multiple faces at the same time</string>
+    <string name="description_recognize_no_area_limited">Unrestricted recognition area</string>
+    <string name="description_recognize_area_limited">Restricted recognition area</string>
+    <string name="description_draw_mirror">Mirror drawing</string>
+    <string name="description_draw_origin">Original drawing</string>
+    <string name="description_camera_0_ir_1_rgb">0:IR, 1:RGB</string>
+    <string name="description_camera_0_rgb_1_ir">0:RGB, 1:IR</string>
+    <string name="description_image_quality_detect_enabled">Enable image quality inspection</string>
+    <string name="description_image_quality_detect_disabled">Do not enable image quality detection</string>
+    <string name="description_face_size_limit_enabled">Enable face size restriction</string>
+    <string name="description_face_size_limit_disabled">Disable face size restriction</string>
+    <string name="description_face_size_move_enabled">Enable face movement restriction</string>
+    <string name="description_face_size_move_disabled">Disable face movement restriction</string>
+
+    <!-- 配置的VALUE -->
+    <string name="value_liveness_type_rgb">RGB_liveness</string>
+    <string name="value_liveness_type_ir">IR_liveness</string>
+    <string name="value_liveness_type_disable">disable_liveness</string>
+
+    <!-- 活体配置 -->
+    <string name="description_rgb_liveness_detect">RGB liveness detection</string>
+    <string name="description_ir_liveness_detect">Binocular(RGB,IR) liveness detection</string>
+    <string name="description_disable_liveness_detect">Do not enable liveness detection</string>
+
+    <!-- 默认项-->
+    <string name="default_recognize_orient_priority">ASF_OP_ALL_OUT</string>
+    <string name="already_activated">already activated</string>
+    <string name="active_key_activated">active key activated</string>
+    <string name="dont_need_active_anymore">dont need active anymore</string>
+    <string name="face_attr_setting_threshold_recognize">face_attr_setting_threshold_recognize</string>
+    <string name="preference_shelter_threshold">shelter_threshold</string>
+    <string name="preference_eye_open_threshold">eye_open_threshold</string>
+    <string name="preference_mouth_close_threshold">mouth_close_threshold</string>
+    <string name="preference_wear_glasses_threshold">wear_glasses_threshold</string>
+    <string name="preference_liveness_fq_threshold">liveness_fq_threshold</string>
+    <string name="preference_rgb_liveness_face_size_threshold">rgb_liveness_face_size_threshold</string>
+    <string name="preference_ir_liveness_face_size_threshold">ir_liveness_face_size_threshold</string>
+    <string name="title_liveness_fq_threshold">liveness_fq_threshold</string>
+    <string name="title_rgb_liveness_face_size">rgb_liveness_face_size</string>
+    <string name="title_ir_liveness_face_size">ir_liveness_face_size</string>
+    <string name="title_shelter_threshold">shelter_threshold</string>
+    <string name="title_eye_open_threshold">eye_open_threshold</string>
+    <string name="title_mouth_close_threshold">mouth_close_threshold</string>
+    <string name="title_wear_glasses_threshold">wear_glasses_threshold</string>
+
+</resources>
