@@ -507,7 +507,7 @@ public class ConfigUtil {
     }
 
     public static boolean isMatiposFaceRecognitionEnable(Context context) {
-        return getBoolean(context, R.string.preference_matipos_face_util, MATIPOS_IS_QR_READER_ENABLE);
+        return getBoolean(context, R.string.preference_matipos_face_util, true);
     }
 
     public static boolean setMatiposFaceRecognition(Context context, boolean state) {

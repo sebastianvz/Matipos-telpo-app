@@ -37,7 +37,7 @@ public class QrReader {
         if (decodeReader.open(115200) == ResultCode.SUCCESS)
         {
             decodeReader.setDecodeReaderListener(bytes -> {
-                if (bytes.length != 0) {
+                if (bytes.length >= 4) {
                     String strCode = new String(bytes, StandardCharsets.UTF_8);
                     qrValue.postValue(strCode.replace("\r\n", ""));
                 }
@@ -48,6 +48,8 @@ public class QrReader {
     public void stopDecodeReader() {
         if (decodeReader != null) {
             decodeReader.close();
+            decodeReader = null;
+            qrValue = null;
         }
     }
 

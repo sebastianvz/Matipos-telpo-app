@@ -76,4 +76,7 @@ public interface FaceDao {
 
     @Query("SELECT * FROM face WHERE faceId = :faceId limit 1")
     FaceEntity queryByFaceId(int faceId);
+
+    @Query("SELECT * FROM face ORDER BY faceId DESC LIMIT 1")
+    FaceEntity queryByLastFaceId();
 }

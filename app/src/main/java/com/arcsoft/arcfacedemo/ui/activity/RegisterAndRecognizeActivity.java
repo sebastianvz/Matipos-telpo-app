@@ -1,20 +1,24 @@
 package com.arcsoft.arcfacedemo.ui.activity;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.hardware.Camera;
+import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.core.app.ActivityCompat;
@@ -23,8 +27,12 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.arcsoft.arcfacedemo.R;
+import com.arcsoft.arcfacedemo.common.MatiposResponseServer;
 import com.arcsoft.arcfacedemo.databinding.ActivityRegisterAndRecognizeBinding;
+import com.arcsoft.arcfacedemo.facedb.AppDatabase;
+import com.arcsoft.arcfacedemo.facedb.entity.MovementEntity;
 import com.arcsoft.arcfacedemo.ui.model.PreviewConfig;
+import com.arcsoft.arcfacedemo.ui.viewmodel.MatiposViewModel;
 import com.arcsoft.arcfacedemo.ui.viewmodel.RecognizeViewModel;
 import com.arcsoft.arcfacedemo.util.ConfigUtil;
 import com.arcsoft.arcfacedemo.util.ErrorCodeUtil;
@@ -73,11 +81,12 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
     private TextView textViewRgb;
     private TextView textViewIr;
     private boolean openRectInfoDraw;
-
-    // TODO: Variable para activar registro
-    private boolean registerInProcess = false;
     private QrReader qrReader;
     private int touchCounter = 0;
+    private MediaPlayer mediaPlayerInfoMessage;
+    private AlertDialog dialog;
+    private MatiposViewModel matiposViewModel;
+    private MatiposResponseServer matiposResponseServer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,25 +110,47 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
         openRectInfoDraw = false;
         recognizeViewModel.setDrawRectInfoTextValue(true);
 
-        // Start Qr Reader
-        initQr(this);
     }
 
-    private void initQr(Context context)
-    {
+    private void initQr(Context context) {
         if (qrReader == null)
             qrReader = QrReader.getInstance(context);
 
         if (ConfigUtil.isMatiposIsQrReaderEnable(getApplicationContext())) {
             qrReader.startDecodeReader(context);
-        }
-        else {
+        } else {
             qrReader.stopDecodeReader();
         }
 
         qrReader.getValue().observe(this, data -> {
-            if (data.length() > 0) {
-                showLongToast(data);
+            if (data.length() > 4) {
+
+                // Update dialog with message validate code with server
+                if (dialog != null) {
+                    dialog.dismiss();
+                }
+
+                // Build dialog info
+                AlertDialog.Builder builder = new AlertDialog.Builder(RegisterAndRecognizeActivity.this);
+                LayoutInflater inflater = RegisterAndRecognizeActivity.this.getLayoutInflater();
+                View view = inflater.inflate(R.layout.dialog_validate_code, null);
+                view.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+                builder.setView(view);
+                builder.setCancelable(false);
+                LinearLayout linearLayout = view.findViewById(R.id.linea_layout);
+                TextView title = view.findViewById(R.id.title);
+                TextView message = view.findViewById(R.id.message);
+                title.setText("Validating Code");
+                message.setText(data);
+                linearLayout.setBackgroundResource(R.drawable.rounded);
+                dialog = builder.create();
+                dialog.show();
+
+                // Disable qrReader
+                qrReader.stopDecodeReader();
+
+                validateCode(RegisterAndRecognizeActivity.this, data);
+
             }
         });
     }
@@ -140,11 +171,9 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
         recognizeViewModel = new ViewModelProvider(
                 getViewModelStore(),
                 new ViewModelProvider.AndroidViewModelFactory(getApplication())
-        )
-                .get(RecognizeViewModel.class);
+        ).get(RecognizeViewModel.class);
 
         recognizeViewModel.setLiveType(livenessType);
-
         recognizeViewModel.getFtInitCode().observe(this, ftInitCode -> {
             if (ftInitCode != ErrorInfo.MOK) {
                 String error = getString(R.string.specific_engine_init_failed, "ftEngine",
@@ -190,18 +219,86 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
                     break;
             }
         });
-
         recognizeViewModel.getRecognizeConfiguration().observe(this, recognizeConfiguration -> {
             Log.i(TAG, "initViewModel recognizeConfiguration: " + recognizeConfiguration.toString());
         });
-
-        recognizeViewModel.setOnRegisterFinishedCallback((facePreviewInfo, success) -> showToast(success ? "register success" : "register failed"));
-
+        recognizeViewModel.setOnRegisterFinishedCallback((facePreviewInfo, success) -> {
+            showToast(success ? "register success" : "register failed");
+            if (success) {
+                matiposViewModel.updateFaceIdInMovement(RegisterAndRecognizeActivity.this, (int) matiposResponseServer.getIdMovement());
+            }
+        });
         recognizeViewModel.getRecognizeNotice().observe(this, notice -> binding.setRecognizeNotice(notice));
-
         recognizeViewModel.getDrawRectInfoText().observe(this, drawRectInfoText -> {
             binding.setDrawRectInfoText(drawRectInfoText);
         });
+
+        // Matipos viewModel
+        matiposViewModel = new ViewModelProvider(
+                getViewModelStore(),
+                new ViewModelProvider.AndroidViewModelFactory(getApplication())
+        ).get(MatiposViewModel.class);
+
+
+        matiposViewModel.getMatiposResponse().observe(this, response -> {
+            if (dialog != null)
+                dialog.dismiss();
+
+            // Star led module
+            Gpio gpio = new Gpio();
+            int ledColor = CommonConstants.LedColor.WHITE_LED;
+            int ledSecondsInOn = ConfigUtil.getMatiposSecondsEnableLed(RegisterAndRecognizeActivity.this) * 1000;
+
+            // Show dialog with information
+            AlertDialog.Builder builder = new AlertDialog.Builder(RegisterAndRecognizeActivity.this);
+            LayoutInflater inflater = RegisterAndRecognizeActivity.this.getLayoutInflater();
+            View view = inflater.inflate(R.layout.dialog_matipos_server_response, null);
+            view.setSystemUiVisibility(View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+            builder.setView(view);
+            builder.setCancelable(false);
+            LinearLayout linearLayout = view.findViewById(R.id.validate_code_container);
+
+            if (mediaPlayerInfoMessage != null) {
+                mediaPlayerInfoMessage.stop();
+                mediaPlayerInfoMessage.release();
+                mediaPlayerInfoMessage = null;
+            }
+
+            // Message information
+            if (response.getStatus() != null) {
+                TextView textView = linearLayout.findViewById(R.id.title);
+                textView.setText(response.getAns());
+                ledColor = response.getStatus() ? CommonConstants.LedColor.GREEN_LED : CommonConstants.LedColor.RED_LED;
+                linearLayout.setBackgroundResource(response.getStatus() ? R.drawable.ok : R.drawable.no);
+                mediaPlayerInfoMessage = MediaPlayer.create(RegisterAndRecognizeActivity.this, response.getStatus() ? R.raw.ok : R.raw.no);
+            } else {
+                linearLayout.setBackgroundResource(R.drawable.warning);
+                TextView textView = linearLayout.findViewById(R.id.title);
+                textView.setText(response.getAns());
+                mediaPlayerInfoMessage = MediaPlayer.create(RegisterAndRecognizeActivity.this, R.raw.warning);
+            }
+
+            // Turn ON Led
+            mediaPlayerInfoMessage.start();
+            gpio.toggle(RegisterAndRecognizeActivity.this, CommonConstants.LedType.FILL_LIGHT_1, ledColor, ledSecondsInOn);
+
+            dialog = builder.create();
+            dialog.show();
+
+            matiposResponseServer = response;
+
+            if (response.getStatus())
+                recognizeViewModel.prepareRegister();
+
+            matiposViewModel.startProcessToEndingValidateCode(mediaPlayerInfoMessage, ledSecondsInOn);
+        });
+        matiposViewModel.IsProcessEnding().observe(this, isEnd -> {
+            if (isEnd) {
+                if (dialog != null)
+                    dialog.dismiss();
+            }
+        });
+
     }
 
     private void initView() {
@@ -355,13 +452,53 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
                 });
             }
 
-
             @Override
             public void onPreview(final byte[] nv21, Camera camera) {
                 binding.dualCameraFaceRectView.clearFaceInfo();
                 List<FacePreviewInfo> facePreviewInfoList = recognizeViewModel.onPreviewFrame(nv21, true);
                 if (facePreviewInfoList != null && rgbFaceRectTransformer != null) {
                     drawPreviewInfo(facePreviewInfoList);
+
+                    if (facePreviewInfoList.size() != 0) {
+                        if (dialog == null) {
+
+                            // TODO: Enable to production
+                            if (mediaPlayerInfoMessage == null) {
+                                mediaPlayerInfoMessage = MediaPlayer.create(RegisterAndRecognizeActivity.this, R.raw.info);
+                                mediaPlayerInfoMessage.start();
+                            }
+
+                            // Build dialog of register user
+                            AlertDialog.Builder builder = new AlertDialog.Builder(RegisterAndRecognizeActivity.this);
+                            LayoutInflater inflater = getLayoutInflater();
+                            View dialogView = inflater.inflate(R.layout.custom_dialog, null);
+                            dialogView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+                            builder.setView(dialogView);
+
+                            builder.setTitle("Face Recognized, please read the your code");
+
+                            dialog = builder.create();
+                            dialog.show();
+
+                            // Enable QrReader
+                            initQr(RegisterAndRecognizeActivity.this);
+                        }
+
+                    } else {
+                        if (dialog != null) {
+                            dialog.dismiss();
+                            dialog = null;
+                        }
+
+                        if (mediaPlayerInfoMessage != null) {
+                            mediaPlayerInfoMessage.stop();
+                            mediaPlayerInfoMessage.release();
+                            mediaPlayerInfoMessage = null;
+                        }
+
+                        if (qrReader != null)
+                            qrReader.stopDecodeReader();
+                    }
                 }
                 recognizeViewModel.clearLeftFace(facePreviewInfoList);
             }
@@ -566,6 +703,11 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
                 initIrCamera();
             }
         }
+    }
+
+    // Matipos Server
+    public void validateCode(Context context, String code) {
+        matiposViewModel.postValidationCode(context, code, ConfigUtil.getMatiposDeviceCode(context));
     }
 
     @Override

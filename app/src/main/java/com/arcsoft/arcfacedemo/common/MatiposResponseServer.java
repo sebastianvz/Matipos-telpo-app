@@ -8,6 +8,8 @@ public class MatiposResponseServer {
     private final String date;
     private final String ans;
 
+    private long idMovement;
+
     public MatiposResponseServer(Boolean status, String address, String date, String ans) {
         this.status = status;
         this.address = address;
@@ -40,5 +42,13 @@ public class MatiposResponseServer {
                 "  \"date\": \"" + date + "\",\r\n" + //
                 "  \"ans\": \"" + ans + "\"\r\n" + //
                 "}";
+    }
+
+    public long getIdMovement() {
+        return idMovement;
+    }
+
+    public void setIdMovement(long idMovement) {
+        this.idMovement = idMovement;
     }
 }
