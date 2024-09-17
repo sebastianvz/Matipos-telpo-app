@@ -6,7 +6,7 @@
         android:id="@+id/dual_camera_ll_parent"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/colorPrimary">
+        android:background="@color/background">
 
         <FrameLayout
             android:id="@+id/frame_camera"
@@ -50,14 +50,14 @@
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|end"
             android:layout_margin="@dimen/common_margin"
-            android:visibility="invisible"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:visibility="invisible">
 
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:onClick="openRectInfoDraw"
-                android:text="@{drawRectInfoText}"/>
+                android:text="@{drawRectInfoText}" />
 
             <Button
                 android:layout_width="wrap_content"
@@ -81,10 +81,10 @@
 
 
         <androidx.recyclerview.widget.RecyclerView
-            android:visibility="visible"
             android:id="@+id/dual_camera_recycler_view_person"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:visibility="visible"
             app:compareResultList="@{compareResultList}" />
 
         <TextView

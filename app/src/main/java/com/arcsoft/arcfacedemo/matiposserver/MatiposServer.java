@@ -95,13 +95,11 @@ public class MatiposServer {
 
                 MatiposResponseServer response = matiposResponseServer;
                 response.setIdMovement(id);
-                handler.post(() -> {
 
-                    if (matiposResponseServerMutableLiveData == null)
-                        matiposResponseServerMutableLiveData = new MutableLiveData<>();
+                if (matiposResponseServerMutableLiveData == null)
+                    matiposResponseServerMutableLiveData = new MutableLiveData<>();
 
-                    matiposResponseServerMutableLiveData.postValue(response);
-                });
+                matiposResponseServerMutableLiveData.postValue(response);
 
             });
         }

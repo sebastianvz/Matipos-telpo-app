@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/background"
     tools:context=".ui.activity.MatiposServerSettingsActivity">
 
     <LinearLayout
@@ -13,7 +14,7 @@
         android:padding="20dp">
 
         <TextView
-            android:textColor="@color/colorAccent"
+            android:textColor="@color/colorPrimary"
             android:id="@+id/textView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -26,6 +27,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
+            app:dividerColor="@color/colorPrimary"
             android:layout_marginBottom="5dp" />
 
         <TextView
@@ -43,7 +45,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textUri"
-            android:textColor="@color/color_black_shadow"
             android:textStyle="bold" />
 
         <TextView
@@ -61,22 +62,24 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textUri"
-            android:textColor="@color/color_black_shadow"
             android:textStyle="bold" />
 
     </LinearLayout>
 
     <Button
+        android:background="@drawable/buttom_style"
         android:layout_marginBottom="20dp"
         android:layout_gravity="center|bottom"
         android:id="@+id/btnUpdate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="UPDATE"
+        android:text="Actualizar"
+        android:textColor="@android:color/white"
         android:textSize="28sp"
         android:textStyle="bold"/>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:tint="@android:color/white"
         android:id="@+id/btnBack"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

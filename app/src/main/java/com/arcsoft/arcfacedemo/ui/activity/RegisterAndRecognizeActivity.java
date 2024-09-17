@@ -81,12 +81,12 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
     private TextView textViewRgb;
     private TextView textViewIr;
     private boolean openRectInfoDraw;
-    private QrReader qrReader;
     private int touchCounter = 0;
     private MediaPlayer mediaPlayerInfoMessage;
     private AlertDialog dialog;
     private MatiposViewModel matiposViewModel;
     private MatiposResponseServer matiposResponseServer;
+    private boolean inProgres = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,11 +96,9 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
         //保持亮屏
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            WindowManager.LayoutParams attributes = getWindow().getAttributes();
-            attributes.systemUiVisibility = View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
-            getWindow().setAttributes(attributes);
-        }
+        WindowManager.LayoutParams attributes = getWindow().getAttributes();
+        attributes.systemUiVisibility = View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+        getWindow().setAttributes(attributes);
 
         // Activity启动后就锁定为启动时的方向
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
@@ -109,50 +107,50 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
         initView();
         openRectInfoDraw = false;
         recognizeViewModel.setDrawRectInfoTextValue(true);
-
+        matiposViewModel.stopReaders(RegisterAndRecognizeActivity.this);
     }
 
-    private void initQr(Context context) {
-        if (qrReader == null)
-            qrReader = QrReader.getInstance(context);
+    private void initReaders() {
+        matiposViewModel.startReaders(RegisterAndRecognizeActivity.this, ConfigUtil.isMatiposIsQrReaderEnable(getApplicationContext()), ConfigUtil.isMatiposIsNfcReaderEnable(getApplicationContext()));
 
-        if (ConfigUtil.isMatiposIsQrReaderEnable(getApplicationContext())) {
-            qrReader.startDecodeReader(context);
-        } else {
-            qrReader.stopDecodeReader();
-        }
+        if (ConfigUtil.isMatiposIsQrReaderEnable(getApplicationContext()))
+            matiposViewModel.getQrValidationCode().observe(this, this::stopReaders);
 
-        qrReader.getValue().observe(this, data -> {
-            if (data.length() > 4) {
+        if (ConfigUtil.isMatiposIsNfcReaderEnable(getApplicationContext()))
+            matiposViewModel.getNfcValidationCode().observe(this, this::stopReaders);
+    }
 
-                // Update dialog with message validate code with server
-                if (dialog != null) {
-                    dialog.dismiss();
-                }
+    private void stopReaders(String data) {
+        if (data.length() > 4) {
 
-                // Build dialog info
-                AlertDialog.Builder builder = new AlertDialog.Builder(RegisterAndRecognizeActivity.this);
-                LayoutInflater inflater = RegisterAndRecognizeActivity.this.getLayoutInflater();
-                View view = inflater.inflate(R.layout.dialog_validate_code, null);
-                view.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-                builder.setView(view);
-                builder.setCancelable(false);
-                LinearLayout linearLayout = view.findViewById(R.id.linea_layout);
-                TextView title = view.findViewById(R.id.title);
-                TextView message = view.findViewById(R.id.message);
-                title.setText("Validating Code");
-                message.setText(data);
-                linearLayout.setBackgroundResource(R.drawable.rounded);
-                dialog = builder.create();
-                dialog.show();
-
-                // Disable qrReader
-                qrReader.stopDecodeReader();
-
-                validateCode(RegisterAndRecognizeActivity.this, data);
-
+            // Update dialog with message validate code with server
+            if (dialog != null) {
+                dialog.dismiss();
             }
-        });
+
+            // Build dialog info
+            AlertDialog.Builder builder = new AlertDialog.Builder(RegisterAndRecognizeActivity.this);
+            LayoutInflater inflater = RegisterAndRecognizeActivity.this.getLayoutInflater();
+            View view = inflater.inflate(R.layout.dialog_validate_code, null);
+            view.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+            builder.setView(view);
+            builder.setCancelable(false);
+            LinearLayout linearLayout = view.findViewById(R.id.linea_layout);
+            TextView title = view.findViewById(R.id.title);
+            TextView message = view.findViewById(R.id.message);
+            title.setText("Validating Code");
+            message.setText(data);
+            linearLayout.setBackgroundResource(R.drawable.rounded);
+            dialog = builder.create();
+            dialog.show();
+
+            // Disable qrReader
+            matiposViewModel.stopReaders(RegisterAndRecognizeActivity.this);
+
+            inProgres = true;
+            validateCode(RegisterAndRecognizeActivity.this, data);
+
+        }
     }
 
     private void initData() {
@@ -241,6 +239,10 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
 
 
         matiposViewModel.getMatiposResponse().observe(this, response -> {
+
+            if (!inProgres)
+                return;
+
             if (dialog != null)
                 dialog.dismiss();
 
@@ -296,6 +298,9 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
             if (isEnd) {
                 if (dialog != null)
                     dialog.dismiss();
+
+                inProgres = false;
+                dialog = null;
             }
         });
 
@@ -323,8 +328,9 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
 
     @Override
     protected void onDestroy() {
-        if (qrReader != null)
-            qrReader.stopDecodeReader();
+        if (matiposViewModel != null) {
+            matiposViewModel.stopReaders(RegisterAndRecognizeActivity.this);
+        }
 
         if (irCameraHelper != null) {
             irCameraHelper.release();
@@ -461,27 +467,29 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
 
                     if (facePreviewInfoList.size() != 0) {
                         if (dialog == null) {
+                            if (ConfigUtil.isMatiposIsQrReaderEnable(getApplicationContext()) || ConfigUtil.isMatiposIsNfcReaderEnable(getApplicationContext())) {
 
-                            // TODO: Enable to production
-                            if (mediaPlayerInfoMessage == null) {
-                                mediaPlayerInfoMessage = MediaPlayer.create(RegisterAndRecognizeActivity.this, R.raw.info);
-                                mediaPlayerInfoMessage.start();
+                                // TODO: Enable to production
+                                if (mediaPlayerInfoMessage == null) {
+                                    mediaPlayerInfoMessage = MediaPlayer.create(RegisterAndRecognizeActivity.this, R.raw.info);
+                                    mediaPlayerInfoMessage.start();
+                                }
+
+                                // Build dialog of register user
+                                AlertDialog.Builder builder = new AlertDialog.Builder(RegisterAndRecognizeActivity.this);
+                                LayoutInflater inflater = getLayoutInflater();
+                                View dialogView = inflater.inflate(R.layout.custom_dialog, null);
+                                dialogView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+                                builder.setView(dialogView);
+
+                                builder.setTitle("Face Recognized, please read the your code");
+
+                                // Enable QrReader
+                                initReaders();
+
+                                dialog = builder.create();
+                                dialog.show();
                             }
-
-                            // Build dialog of register user
-                            AlertDialog.Builder builder = new AlertDialog.Builder(RegisterAndRecognizeActivity.this);
-                            LayoutInflater inflater = getLayoutInflater();
-                            View dialogView = inflater.inflate(R.layout.custom_dialog, null);
-                            dialogView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-                            builder.setView(dialogView);
-
-                            builder.setTitle("Face Recognized, please read the your code");
-
-                            dialog = builder.create();
-                            dialog.show();
-
-                            // Enable QrReader
-                            initQr(RegisterAndRecognizeActivity.this);
                         }
 
                     } else {
@@ -496,8 +504,8 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
                             mediaPlayerInfoMessage = null;
                         }
 
-                        if (qrReader != null)
-                            qrReader.stopDecodeReader();
+                        if (matiposViewModel != null)
+                            matiposViewModel.stopReaders(RegisterAndRecognizeActivity.this);
                     }
                 }
                 recognizeViewModel.clearLeftFace(facePreviewInfoList);

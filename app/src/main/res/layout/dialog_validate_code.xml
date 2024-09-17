@@ -19,7 +19,6 @@
             android:gravity="center"
             tools:layout_editor_absoluteX="97dp"
             tools:layout_editor_absoluteY="142dp"
-            android:textColor="@color/colorAccent"
             android:textStyle="bold"
             android:textSize="40sp"
             android:textAppearance="?android:attr/textAppearanceLarge"/>
@@ -43,7 +42,6 @@
             android:gravity="center"
             tools:layout_editor_absoluteX="97dp"
             tools:layout_editor_absoluteY="142dp"
-            android:textColor="@color/colorAccent"
             android:textSize="20sp"
             android:textAppearance="?android:attr/textAppearanceLarge"/>
 

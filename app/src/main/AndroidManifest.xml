@@ -23,6 +23,14 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
+            android:name=".ui.activity.AuditActivity"
+            android:exported="false"
+            android:theme="@style/FullScreenTheme" />
+        <activity
+            android:name=".ui.activity.ValidationCodesActivity"
+            android:exported="false"
+            android:theme="@style/FullScreenTheme" />
+        <activity
             android:name=".ui.activity.DeviceSettingsActivity"
             android:exported="false"
             android:theme="@style/FullScreenTheme" />

@@ -22,6 +22,19 @@ public class MovementRepository {
         return movementEntities;
     }
 
+    public List<MovementEntity> nextPage() {
+        return loadMore();
+    }
+
+    public List<MovementEntity> lastPage() {
+        if (currentIndex > pageSize) {
+            List<MovementEntity> movementEntities = movementDao.getMovements(currentIndex - pageSize, pageSize);
+            currentIndex -= movementEntities.size();
+            return movementEntities;
+        }
+        return reload();
+    }
+
     public List<MovementEntity> reload() {
         currentIndex = 0;
         return loadMore();

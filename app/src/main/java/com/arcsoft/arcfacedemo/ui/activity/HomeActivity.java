@@ -109,6 +109,8 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener {
             activityHomeBinding.setSdkVersion("Phone/Tablet Version:" + versionInfo.getVersion());
         }
 
+        activityHomeBinding.llRootView.addView(new NavigateItemView(this, R.drawable.logo_app, "Matipos Codes", ValidationCodesActivity.class));
+
         if (ConfigUtil.isMatiposFaceRecognitionEnable(HomeActivity.this)) {
             activityHomeBinding.llRootView.addView(new NavigateItemView(this, R.drawable.ic_face_id_ir, getString(R.string.page_ir_face_recognize), RegisterAndRecognizeActivity.class));
             // activityHomeBinding.llRootView.addView(new NavigateItemView(this, R.drawable.ic_liveness_check, getString(R.string.page_liveness_detect), LivenessDetectActivity.class));
@@ -119,14 +121,13 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener {
         }
 
         // Matipos options
+        activityHomeBinding.llRootView.addView(new NavigateItemView(this, R.drawable.baseline_checklist_24, "Auditoria Codigos Matipos", AuditActivity.class));
         activityHomeBinding.llRootView.addView(new NavigateItemView(this, R.drawable.baseline_computer_24, "Matipos Server Settings", MatiposServerSettingsActivity.class));
         activityHomeBinding.llRootView.addView(new NavigateItemView(this, R.drawable.ic_debug, "Devices Settings", DeviceSettingsActivity.class));
 
+
         activeView = new NavigateItemView(this, R.drawable.ic_online_active, getString(R.string.active_engine), "", ActivationActivity.class);
         activityHomeBinding.llRootView.addView(activeView);
-
-        // activityHomeBinding.llRootView.addView(new NavigateItemView(this, R.drawable.ic_readme, getString(R.string.page_readme), ReadmeActivity.class));
-
 
         int childCount = activityHomeBinding.llRootView.getChildCount();
         for (int i = 0; i < childCount; i++) {
@@ -134,6 +135,7 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener {
             itemView.setOnClickListener(this);
         }
 
+        // activityHomeBinding.llRootView.addView(new NavigateItemView(this, R.drawable.ic_readme, getString(R.string.page_readme), ReadmeActivity.class));
     }
 
 

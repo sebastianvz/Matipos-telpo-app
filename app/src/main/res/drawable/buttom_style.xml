@@ -5,6 +5,9 @@
     <!-- shape property for the view based on the value particular view would be drawn -->
     <corners android:radius="10dp" />
 
+    <solid
+        android:color="@color/colorPrimary"/>
+
     <padding
         android:bottom="5dp"
         android:left="10dp"
