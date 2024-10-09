@@ -3,6 +3,7 @@ package com.arcsoft.arcfacedemo.ui.activity;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.graphics.Point;
@@ -48,8 +49,10 @@ import com.arcsoft.arcfacedemo.widget.RecognizeAreaView;
 import com.arcsoft.face.ErrorInfo;
 import com.common.CommonConstants;
 import com.common.apiutil.led.Led;
+import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.List;
+import java.util.Objects;
 
 public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTreeObserver.OnGlobalLayoutListener {
     private static final String TAG = "RegisterAndRecognize";
@@ -87,6 +90,7 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
     private MatiposViewModel matiposViewModel;
     private MatiposResponseServer matiposResponseServer;
     private boolean inProgres = false;
+    private boolean dialogAdminUser = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -121,7 +125,7 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
     }
 
     private void stopReaders(String data) {
-        if (data.length() > 4) {
+        if (data.length() > 4 && touchCounter <= 2) {
 
             // Update dialog with message validate code with server
             if (dialog != null) {
@@ -206,10 +210,59 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
                     break;
                 case INSERTED:
                     if (adapter != null) {
-                        Gpio gpio = new Gpio();
-                        gpio.toggle(RegisterAndRecognizeActivity.this, CommonConstants.LedType.FILL_LIGHT_1, CommonConstants.LedColor.GREEN_LED, 1000);
+                        if (touchCounter <= 2) {
+                            boolean isInputDevice = ConfigUtil.isInputDevice(getApplicationContext());
+                            if (!isInputDevice) {
+                                if (!ConfigUtil.isMatiposIsQrReaderEnable(getApplicationContext()) && !ConfigUtil.isMatiposIsNfcReaderEnable(getApplicationContext())) {
+                                    Gpio gpio = new Gpio();
+                                    gpio.toggle(RegisterAndRecognizeActivity.this, CommonConstants.LedType.FILL_LIGHT_1, CommonConstants.LedColor.GREEN_LED, 1000);
+                                } else {
 
-                        // TODO: Start new activity
+                                    if (dialog != null) {
+                                        dialog.dismiss();
+                                    }
+
+                                    // Build dialog of register user
+                                    AlertDialog.Builder builder = new AlertDialog.Builder(RegisterAndRecognizeActivity.this);
+                                    LayoutInflater inflater = getLayoutInflater();
+                                    View dialogView = inflater.inflate(R.layout.custom_dialog, null);
+                                    dialogView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+                                    builder.setView(dialogView);
+
+                                    builder.setTitle("Rostro Identificado, por favor leer el codigo");
+                                    builder.setCancelable(false);
+
+                                    // Enable QrReader
+                                    matiposViewModel.stopReaders(getApplicationContext());
+
+                                    dialog = builder.create();
+                                    dialog.show();
+
+                                    initReaders();
+                                }
+                            } else {
+                                if (dialog != null) {
+                                    dialog.dismiss();
+                                }
+
+                                // Build dialog of register user
+                                AlertDialog.Builder builder = new AlertDialog.Builder(RegisterAndRecognizeActivity.this);
+                                LayoutInflater inflater = getLayoutInflater();
+                                View dialogView = inflater.inflate(R.layout.custom_dialog, null);
+                                dialogView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+                                builder.setView(dialogView);
+
+                                builder.setTitle("Rostro ya registrado");
+                                builder.setCancelable(false);
+
+                                // Enable QrReader
+                                matiposViewModel.stopReaders(getApplicationContext());
+
+                                dialog = builder.create();
+                                dialog.show();
+                            }
+                        }
+
                         adapter.notifyItemInserted(faceItemEvent.getIndex());
                     }
                     break;
@@ -272,7 +325,10 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
                 textView.setText(response.getAns());
                 ledColor = response.getStatus() ? CommonConstants.LedColor.GREEN_LED : CommonConstants.LedColor.RED_LED;
                 linearLayout.setBackgroundResource(response.getStatus() ? R.drawable.ok : R.drawable.no);
-                mediaPlayerInfoMessage = MediaPlayer.create(RegisterAndRecognizeActivity.this, response.getStatus() ? R.raw.ok : R.raw.no);
+
+                if (ConfigUtil.isInputDevice(getApplicationContext()))
+                    mediaPlayerInfoMessage = MediaPlayer.create(RegisterAndRecognizeActivity.this, response.getStatus() ? R.raw.ok : R.raw.no);
+
             } else {
                 linearLayout.setBackgroundResource(R.drawable.warning);
                 TextView textView = linearLayout.findViewById(R.id.title);
@@ -309,11 +365,47 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
     private void initView() {
 
         findViewById(R.id.frame_camera).setOnClickListener(v -> {
-            if (touchCounter > 5) {
-                touchCounter = 0;
+            if (touchCounter > 2) {
+
                 // TODO: Back to menu using password
                 this.actionAfterFinish = NAVIGATE_TO_HOME_ACTIVITY;
-                finish();
+                // finish();
+                AlertDialog.Builder builder = new AlertDialog.Builder(RegisterAndRecognizeActivity.this);
+                LayoutInflater inflater = getLayoutInflater();
+                View view = inflater.inflate(R.layout.dialog_custom_login, null);
+                view.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+                builder.setView(view);
+
+                builder.setTitle("Ir a menu aplicación");
+
+                // Boton OK
+                builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        TextInputEditText username = view.findViewById(R.id.username);
+                        TextInputEditText password = view.findViewById(R.id.password);
+
+                        if (Objects.requireNonNull(username.getText()).toString().equals(ConfigUtil.getAdminUsername(getApplicationContext()))
+                                && Objects.requireNonNull(password.getText()).toString().equals(ConfigUtil.getAdminPassword(getApplicationContext())))
+                            finish();
+                        else
+                            showToast("Usuario o Contraseña incorrecto");
+
+                        touchCounter = 0;
+                    }
+                });
+
+                builder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+
+                dialog = builder.create();
+                dialog.show();
+
             }
             touchCounter++;
         });
@@ -469,10 +561,14 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
                         if (dialog == null) {
                             if (ConfigUtil.isMatiposIsQrReaderEnable(getApplicationContext()) || ConfigUtil.isMatiposIsNfcReaderEnable(getApplicationContext())) {
 
+                                boolean isInputDevice = ConfigUtil.isInputDevice(getApplicationContext());
+
                                 // TODO: Enable to production
-                                if (mediaPlayerInfoMessage == null) {
-                                    mediaPlayerInfoMessage = MediaPlayer.create(RegisterAndRecognizeActivity.this, R.raw.info);
-                                    mediaPlayerInfoMessage.start();
+                                if (isInputDevice) {
+                                    if (mediaPlayerInfoMessage == null) {
+                                        mediaPlayerInfoMessage = MediaPlayer.create(RegisterAndRecognizeActivity.this, R.raw.info);
+                                        mediaPlayerInfoMessage.start();
+                                    }
                                 }
 
                                 // Build dialog of register user
@@ -482,10 +578,12 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
                                 dialogView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
                                 builder.setView(dialogView);
 
-                                builder.setTitle("Face Recognized, please read the your code");
+                                builder.setTitle(isInputDevice ? "Rostro Identificado, por favor leer codigo para ingreso" : "Rostro Identificado, validando....");
+                                builder.setCancelable(false);
 
                                 // Enable QrReader
-                                initReaders();
+                                if (isInputDevice)
+                                    initReaders();
 
                                 dialog = builder.create();
                                 dialog.show();
@@ -493,7 +591,7 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
                         }
 
                     } else {
-                        if (dialog != null) {
+                        if (dialog != null && touchCounter <= 2) {
                             dialog.dismiss();
                             dialog = null;
                         }

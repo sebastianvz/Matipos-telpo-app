@@ -10,17 +10,22 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.Spinner;
 
 import com.arcsoft.arcfacedemo.R;
 import com.arcsoft.arcfacedemo.util.ConfigUtil;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textfield.TextInputEditText;
 
 public class MatiposServerSettingsActivity extends BaseActivity {
 
     private TextInputEditText textInputEditTextUrlBase;
     private TextInputEditText textInputEditTextDeviceCode;
+    private SwitchMaterial switchDeviceType;
 
 
     @Override
@@ -30,11 +35,9 @@ public class MatiposServerSettingsActivity extends BaseActivity {
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            WindowManager.LayoutParams attributes = getWindow().getAttributes();
-            attributes.systemUiVisibility = View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
-            getWindow().setAttributes(attributes);
-        }
+        WindowManager.LayoutParams attributes = getWindow().getAttributes();
+        attributes.systemUiVisibility = View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+        getWindow().setAttributes(attributes);
 
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
 
@@ -52,6 +55,9 @@ public class MatiposServerSettingsActivity extends BaseActivity {
 
         textInputEditTextDeviceCode = findViewById(R.id.deviceCode);
         textInputEditTextDeviceCode.setText(ConfigUtil.getMatiposDeviceCode(MatiposServerSettingsActivity.this));
+
+        switchDeviceType = findViewById(R.id.switchDeviceType);
+        switchDeviceType.setChecked(ConfigUtil.isInputDevice(MatiposServerSettingsActivity.this));
 
         findViewById(R.id.btnUpdate).setOnClickListener(v -> {
 
@@ -72,7 +78,9 @@ public class MatiposServerSettingsActivity extends BaseActivity {
                     if (ConfigUtil.setMatiposDeviceCode(getApplicationContext(), deviceCode)) {
                         String urlBase = String.valueOf(textInputEditTextUrlBase.getText());
                         if (ConfigUtil.setMatiposUrlServer(getApplicationContext(), urlBase)) {
-                            isError = false;
+                            if (ConfigUtil.setInputDevice(getApplicationContext(), switchDeviceType.isChecked())) {
+                                isError = false;
+                            }
                         }
                     }
                     showToast(isError ? "Error" : "Ok");

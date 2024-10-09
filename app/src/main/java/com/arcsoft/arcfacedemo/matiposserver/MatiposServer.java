@@ -8,6 +8,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.room.Database;
 
+import com.arcsoft.arcfacedemo.ArcFaceApplication;
 import com.arcsoft.arcfacedemo.common.MatiposRequestServer;
 import com.arcsoft.arcfacedemo.common.MatiposResponseServer;
 import com.arcsoft.arcfacedemo.data.MovementRepository;
@@ -55,6 +56,10 @@ public class MatiposServer {
         }
     }
 
+    public FaceEntity getFaceEntityByFaceId(int faceId) {
+        return AppDatabase.getInstance(ArcFaceApplication.getApplication()).faceDao().queryByFaceId(faceId);
+    }
+
 
     // Async task
     private static class AsyncMatiposRequest {
@@ -70,15 +75,13 @@ public class MatiposServer {
 
                 // Request
                 MatiposResponseServer matiposResponseServer = null;
-                String errorMessage = "";
+                String errorMessage = "NULL";
 
                 String matiposUrlServer = ConfigUtil.getMatiposUrlServer(context);
                 if (matiposUrlServer != null) {
                     try {
                         matiposResponseServer = MatiposService.getInstance().sendPostRequest(matiposUrlServer, matiposRequestServer);
-                    } catch (SocketTimeoutException ignored) {
-                        errorMessage = ignored.getMessage();
-                    } catch (RuntimeException e) {
+                    } catch (Exception e) {
                         errorMessage = e.getMessage();
                     }
                 }

@@ -2,6 +2,7 @@ package com.arcsoft.arcfacedemo.facedb.entity;
 
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
 import com.arcsoft.arcfacedemo.common.MatiposRequestServer;
@@ -33,6 +34,9 @@ public class MovementEntity {
 
     @ColumnInfo(name = "response_datetime")
     public String responseDatetime;
+
+    @Ignore
+    public FaceEntity faceEntity;
 
     public int getMovementId() {
         return movementId;
@@ -88,6 +92,14 @@ public class MovementEntity {
 
     public void setResponseDatetime(String responseDatetime) {
         this.responseDatetime = responseDatetime;
+    }
+
+    public FaceEntity getFaceEntity(){
+        return faceEntity;
+    }
+
+    public void setFaceEntity(FaceEntity faceEntity) {
+        this.faceEntity = faceEntity;
     }
 
     public MatiposResponseServer parseResponse() {

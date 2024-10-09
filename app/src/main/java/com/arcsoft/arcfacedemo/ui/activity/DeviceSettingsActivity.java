@@ -26,11 +26,9 @@ public class DeviceSettingsActivity extends BaseActivity {
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            WindowManager.LayoutParams attributes = getWindow().getAttributes();
-            attributes.systemUiVisibility = View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
-            getWindow().setAttributes(attributes);
-        }
+        WindowManager.LayoutParams attributes = getWindow().getAttributes();
+        attributes.systemUiVisibility = View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+        getWindow().setAttributes(attributes);
 
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
 

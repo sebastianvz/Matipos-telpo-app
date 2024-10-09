@@ -2,11 +2,15 @@ package com.arcsoft.arcfacedemo.ui.activity;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 
@@ -48,11 +52,11 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener {
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            WindowManager.LayoutParams attributes = getWindow().getAttributes();
-            attributes.systemUiVisibility = View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
-            getWindow().setAttributes(attributes);
-        }
+
+        WindowManager.LayoutParams attributes = getWindow().getAttributes();
+        attributes.systemUiVisibility = View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+        getWindow().setAttributes(attributes);
+        getWindow().setAttributes(attributes);
 
         // Activity启动后就锁定为启动时的方向
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
@@ -63,6 +67,10 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener {
             initData();
         } else {
             ActivityCompat.requestPermissions(this, NEEDED_PERMISSIONS, ACTION_REQUEST_PERMISSIONS);
+        }
+
+        if (!homeViewModel.isInternetAvailable(getApplicationContext())) {
+            showDialog("Por favor verifique conexion a internet");
         }
     }
 
@@ -109,15 +117,15 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener {
             activityHomeBinding.setSdkVersion("Phone/Tablet Version:" + versionInfo.getVersion());
         }
 
-        activityHomeBinding.llRootView.addView(new NavigateItemView(this, R.drawable.logo_app, "Matipos Codes", ValidationCodesActivity.class));
+        activityHomeBinding.llRootView.addView(new NavigateItemView(this, R.drawable.logo_app, "Validacion Matipos", ValidationCodesActivity.class));
 
         if (ConfigUtil.isMatiposFaceRecognitionEnable(HomeActivity.this)) {
-            activityHomeBinding.llRootView.addView(new NavigateItemView(this, R.drawable.ic_face_id_ir, getString(R.string.page_ir_face_recognize), RegisterAndRecognizeActivity.class));
+            activityHomeBinding.llRootView.addView(new NavigateItemView(this, R.drawable.ic_face_id_ir, "Reconocimiento facial", RegisterAndRecognizeActivity.class));
             // activityHomeBinding.llRootView.addView(new NavigateItemView(this, R.drawable.ic_liveness_check, getString(R.string.page_liveness_detect), LivenessDetectActivity.class));
             // activityHomeBinding.llRootView.addView(new NavigateItemView(this, R.drawable.ic_face_attr, getString(R.string.page_single_image), ImageFaceAttrDetectActivity.class));
             // activityHomeBinding.llRootView.addView(new NavigateItemView(this, R.drawable.ic_face_compare, getString(R.string.page_face_compare), FaceCompareActivity.class));
-            activityHomeBinding.llRootView.addView(new NavigateItemView(this, R.drawable.ic_face_manage, getString(R.string.page_face_manage), FaceManageActivity.class));
-            activityHomeBinding.llRootView.addView(new NavigateItemView(this, R.drawable.ic_settings, getString(R.string.page_settings), RecognizeSettingsActivity.class));
+            activityHomeBinding.llRootView.addView(new NavigateItemView(this, R.drawable.ic_face_manage, "Administracion de rostros", FaceManageActivity.class));
+            activityHomeBinding.llRootView.addView(new NavigateItemView(this, R.drawable.ic_settings, "Configuracion reconocimiento facial", RecognizeSettingsActivity.class));
         }
 
         // Matipos options
@@ -163,7 +171,18 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener {
                         showLongToast(getString(R.string.notice_please_active_before_use));
                         activeView.performClick();
                     } else {
-                        navigateToNewPage(((Class) ((NavigateItemView) v).getExtraData()));
+                        boolean showDialogAlert = false;
+                        NavigateItemView view = (NavigateItemView) v;
+                        String className = ((Class) view.getExtraData()).getName();
+                        if (className.equals(ValidationCodesActivity.class.getName())
+                                || className.equals(RegisterAndRecognizeActivity.class.getName())) {
+                            showDialogAlert = !homeViewModel.isInternetAvailable(getApplicationContext());
+                        }
+
+                        if (!showDialogAlert)
+                            navigateToNewPage(((Class) ((NavigateItemView) v).getExtraData()));
+                        else
+                            showDialog("No hay conexión a internet para avanzar");
                     }
                     break;
             }
@@ -176,5 +195,28 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener {
         if (requestCode == REQUEST_ACTIVE_CODE) {
             homeViewModel.getActivated().postValue(homeViewModel.isActivated(this));
         }
+    }
+
+    private void showDialog(String title) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(HomeActivity.this);
+        LayoutInflater inflater = getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.custom_dialog, null);
+        dialogView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        builder.setView(dialogView);
+
+        // Optionally, set title and buttons
+        builder.setTitle(title);
+        builder.setCancelable(false);
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+                Intent intent = new Intent(Settings.ACTION_WIFI_SETTINGS);
+                startActivity(intent);
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 }

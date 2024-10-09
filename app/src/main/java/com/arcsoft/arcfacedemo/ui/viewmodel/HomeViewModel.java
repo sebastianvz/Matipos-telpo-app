@@ -5,6 +5,7 @@ import android.content.Context;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.arcsoft.arcfacedemo.matiposserver.InternetCheck;
 import com.arcsoft.face.ActiveFileInfo;
 import com.arcsoft.face.ErrorInfo;
 import com.arcsoft.face.FaceEngine;
@@ -25,5 +26,9 @@ public class HomeViewModel extends ViewModel {
 
     public boolean isActivated(Context context) {
         return FaceEngine.getActiveFileInfo(context, new ActiveFileInfo()) == ErrorInfo.MOK;
+    }
+
+    public boolean isInternetAvailable(Context context) {
+        return InternetCheck.isInternetAvailable(context);
     }
 }

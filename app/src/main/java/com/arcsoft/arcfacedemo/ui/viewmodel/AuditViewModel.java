@@ -12,7 +12,9 @@ import com.arcsoft.arcfacedemo.ArcFaceApplication;
 import com.arcsoft.arcfacedemo.data.MovementRepository;
 import com.arcsoft.arcfacedemo.facedb.AppDatabase;
 import com.arcsoft.arcfacedemo.facedb.dao.MovementDao;
+import com.arcsoft.arcfacedemo.facedb.entity.FaceEntity;
 import com.arcsoft.arcfacedemo.facedb.entity.MovementEntity;
+import com.arcsoft.arcfacedemo.matiposserver.MatiposServer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -80,6 +82,16 @@ public class AuditViewModel extends ViewModel {
 
                 if (listMutableLiveData == null)
                     listMutableLiveData = new MutableLiveData<>();
+
+                if (movementEntityList.size() > 0) {
+                    for (int i = 0; i < movementEntityList.size(); i++) {
+                        int faceId = movementEntityList.get(i).getFaceId();
+                        if (faceId > 0) {
+                            FaceEntity faceEntity = new MatiposServer().getFaceEntityByFaceId(faceId);
+                            movementEntityList.get(i).setFaceEntity(faceEntity);
+                        }
+                    }
+                }
 
                 listMutableLiveData.postValue(movementEntityList);
             });

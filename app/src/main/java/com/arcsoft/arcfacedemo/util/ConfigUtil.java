@@ -478,6 +478,18 @@ public class ConfigUtil {
         return getBoolean(context, R.string.preference_matipos_is_nfc_reader_enable, MATIPOS_IS_NFC_READER_ENABLE);
     }
 
+    public static boolean isInputDevice(Context context) {
+        return  getBoolean(context, R.string.preference_matipos_is_input_device, true);
+    }
+
+    public static boolean setInputDevice(Context context, boolean state) {
+        if (context == null) {
+            return false;
+        }
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        return sharedPreferences.edit().putBoolean(context.getString(R.string.preference_matipos_is_input_device), state).commit();
+    }
+
     public static boolean setNfcReader(Context context, boolean state) {
         if (context == null) {
             return false;
@@ -516,5 +528,21 @@ public class ConfigUtil {
         }
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         return sharedPreferences.edit().putBoolean(context.getString(R.string.preference_matipos_face_util), state).commit();
+    }
+
+    public static String getAdminUsername(Context context) {
+        return getString(context, R.string.preference_matipos_admin_username, "admin");
+    }
+
+    public static boolean setAdminUsername(Context context, String username) {
+        return commitString(context, R.string.preference_matipos_admin_username, username);
+    }
+
+    public static String getAdminPassword(Context context) {
+        return getString(context, R.string.preference_matipos_admin_password, "admin");
+    }
+
+    public static boolean setAdminPassword(Context context, String password) {
+        return commitString(context, R.string.preference_matipos_admin_password, password);
     }
 }

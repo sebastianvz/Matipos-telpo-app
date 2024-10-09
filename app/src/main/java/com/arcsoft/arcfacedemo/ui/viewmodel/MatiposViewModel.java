@@ -145,4 +145,7 @@ public class MatiposViewModel extends ViewModel {
         return nfcValidationCode;
     }
 
+    public boolean readersOk(Context context) {
+        return ConfigUtil.isMatiposIsNfcReaderEnable(context) || ConfigUtil.isMatiposIsQrReaderEnable(context);
+    }
 }

@@ -4,6 +4,7 @@ package com.arcsoft.arcfacedemo.ui.activity;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.media.MediaPlayer;
 import android.os.Bundle;
@@ -23,6 +24,9 @@ import com.arcsoft.arcfacedemo.ui.viewmodel.MatiposViewModel;
 import com.arcsoft.arcfacedemo.util.ConfigUtil;
 import com.arcsoft.arcfacedemo.util.gpios.Gpio;
 import com.common.CommonConstants;
+import com.google.android.material.textfield.TextInputEditText;
+
+import java.util.Objects;
 
 public class ValidationCodesActivity extends BaseActivity {
 
@@ -47,7 +51,41 @@ public class ValidationCodesActivity extends BaseActivity {
         initViewModels();
 
         findViewById(R.id.btnBack).setOnClickListener(v -> {
-            finish();
+            // finish();
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(ValidationCodesActivity.this);
+            LayoutInflater inflater = getLayoutInflater();
+            View view = inflater.inflate(R.layout.dialog_custom_login, null);
+            view.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+            builder.setView(view);
+
+            builder.setTitle("Ir a menu aplicación");
+
+            // Boton OK
+            builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    TextInputEditText username = view.findViewById(R.id.username);
+                    TextInputEditText password = view.findViewById(R.id.password);
+
+                    if (Objects.requireNonNull(username.getText()).toString().equals(ConfigUtil.getAdminUsername(getApplicationContext()))
+                            && Objects.requireNonNull(password.getText()).toString().equals(ConfigUtil.getAdminPassword(getApplicationContext())))
+                        finish();
+                    else
+                        showToast("Usuario o Contraseña incorrecto");
+                }
+            });
+
+            builder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                }
+            });
+
+            dialog = builder.create();
+            dialog.show();
+
         });
 
         findViewById(R.id.main_layout).setOnTouchListener((v, event) -> {
@@ -139,7 +177,12 @@ public class ValidationCodesActivity extends BaseActivity {
             }
         });
 
-        startReaders();
+        if (matiposViewModel.readersOk(getApplicationContext()))
+            startReaders();
+        else {
+            showLongToast("No hay dispositivos activos");
+            finish();
+        }
 
     }
 

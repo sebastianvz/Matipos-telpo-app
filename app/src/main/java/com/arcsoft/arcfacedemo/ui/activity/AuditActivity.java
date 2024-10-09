@@ -5,14 +5,18 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 
 import com.arcsoft.arcfacedemo.R;
 import com.arcsoft.arcfacedemo.ui.adapter.AuditAdapter;
 import com.arcsoft.arcfacedemo.ui.viewmodel.AuditViewModel;
+import com.arcsoft.arcfacedemo.util.ConfigUtil;
 
 public class AuditActivity extends BaseActivity {
 
@@ -48,7 +52,32 @@ public class AuditActivity extends BaseActivity {
         });
 
         findViewById(R.id.btn_clear).setOnClickListener(v -> {
-            viewModel.purge();
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(AuditActivity.this);
+            LayoutInflater inflater = getLayoutInflater();
+            View dialogView = inflater.inflate(R.layout.custom_dialog, null);
+            dialogView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+            builder.setView(dialogView);
+
+            // Optionally, set title and buttons
+            builder.setTitle("Seguro de borrar registros");
+            builder.setPositiveButton("Borrar", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    viewModel.purge();
+                    dialog.dismiss();
+                }
+            });
+            builder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                }
+            });
+
+            AlertDialog dialog = builder.create();
+            dialog.show();
+
         });
     }
 

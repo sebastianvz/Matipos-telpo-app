@@ -219,6 +219,9 @@
     <string name="preference_matipos_is_qr_reader_enable" translatable="false">matipos_is_qr_reader_enable</string>
     <string name="preference_matipos_seconds_enable_led" translatable="false">matipos_seconds_enable_led</string>
     <string name="preference_matipos_face_util" translatable="false">matipos_face_util</string>
+    <string name="preference_matipos_is_input_device" translatable="false">matipos_is_input_device</string>
+    <string name="preference_matipos_admin_username" translatable="false">matipos_admin_username</string>
+    <string name="preference_matipos_admin_password" translatable="false">matipos_admin_password</string>
 
 
     <!-- 识别相关的配置项-->
@@ -288,5 +291,4 @@
 
     <!-- 默认项-->
     <string name="default_recognize_orient_priority">ASF_OP_ALL_OUT</string>
-
 </resources>
