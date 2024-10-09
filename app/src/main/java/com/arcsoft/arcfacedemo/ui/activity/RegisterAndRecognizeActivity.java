@@ -326,8 +326,7 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
                 ledColor = response.getStatus() ? CommonConstants.LedColor.GREEN_LED : CommonConstants.LedColor.RED_LED;
                 linearLayout.setBackgroundResource(response.getStatus() ? R.drawable.ok : R.drawable.no);
 
-                if (ConfigUtil.isInputDevice(getApplicationContext()))
-                    mediaPlayerInfoMessage = MediaPlayer.create(RegisterAndRecognizeActivity.this, response.getStatus() ? R.raw.ok : R.raw.no);
+                mediaPlayerInfoMessage = MediaPlayer.create(RegisterAndRecognizeActivity.this, response.getStatus() ? R.raw.ok : R.raw.no);
 
             } else {
                 linearLayout.setBackgroundResource(R.drawable.warning);
@@ -345,11 +344,13 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
 
             matiposResponseServer = response;
 
-            if (response.getStatus())
-                recognizeViewModel.prepareRegister();
-
+            if (ConfigUtil.isInputDevice(getApplicationContext())) {
+                if (response.getStatus())
+                    recognizeViewModel.prepareRegister();
+            }
             matiposViewModel.startProcessToEndingValidateCode(mediaPlayerInfoMessage, ledSecondsInOn);
         });
+
         matiposViewModel.IsProcessEnding().observe(this, isEnd -> {
             if (isEnd) {
                 if (dialog != null)
