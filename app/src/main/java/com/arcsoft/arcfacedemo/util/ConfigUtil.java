@@ -545,4 +545,16 @@ public class ConfigUtil {
     public static boolean setAdminPassword(Context context, String password) {
         return commitString(context, R.string.preference_matipos_admin_password, password);
     }
+
+    public static boolean isWhiteLightEnable(Context context) {
+        return getBoolean(context, R.string.preference_matipos_white_light, true);
+    }
+
+    public static boolean setWhiteLight(Context context, boolean state) {
+        if (context == null) {
+            return false;
+        }
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        return sharedPreferences.edit().putBoolean(context.getString(R.string.preference_matipos_white_light), state).commit();
+    }
 }

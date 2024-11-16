@@ -90,12 +90,13 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
     private MatiposViewModel matiposViewModel;
     private MatiposResponseServer matiposResponseServer;
     private boolean inProgres = false;
-    private boolean dialogAdminUser = false;
+    private Gpio gpio;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = DataBindingUtil.setContentView(this, R.layout.activity_register_and_recognize);
+        gpio = new Gpio();
 
         //保持亮屏
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -142,7 +143,7 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
             LinearLayout linearLayout = view.findViewById(R.id.linea_layout);
             TextView title = view.findViewById(R.id.title);
             TextView message = view.findViewById(R.id.message);
-            title.setText("Validating Code");
+            title.setText("Validando codigo");
             message.setText(data);
             linearLayout.setBackgroundResource(R.drawable.rounded);
             dialog = builder.create();
@@ -214,7 +215,6 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
                             boolean isInputDevice = ConfigUtil.isInputDevice(getApplicationContext());
                             if (!isInputDevice) {
                                 if (!ConfigUtil.isMatiposIsQrReaderEnable(getApplicationContext()) && !ConfigUtil.isMatiposIsNfcReaderEnable(getApplicationContext())) {
-                                    Gpio gpio = new Gpio();
                                     gpio.toggle(RegisterAndRecognizeActivity.this, CommonConstants.LedType.FILL_LIGHT_1, CommonConstants.LedColor.GREEN_LED, 1000);
                                 } else {
 
@@ -245,21 +245,27 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
                                     dialog.dismiss();
                                 }
 
-                                // Build dialog of register user
-                                AlertDialog.Builder builder = new AlertDialog.Builder(RegisterAndRecognizeActivity.this);
-                                LayoutInflater inflater = getLayoutInflater();
-                                View dialogView = inflater.inflate(R.layout.custom_dialog, null);
-                                dialogView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-                                builder.setView(dialogView);
+                                if (!ConfigUtil.isMatiposIsQrReaderEnable(getApplicationContext()) && !ConfigUtil.isMatiposIsNfcReaderEnable(getApplicationContext())) {
+                                    gpio.toggle(RegisterAndRecognizeActivity.this, CommonConstants.LedType.FILL_LIGHT_1, CommonConstants.LedColor.GREEN_LED, 1000);
+                                }
+                                else {
+                                    // Build dialog of register user
+                                    AlertDialog.Builder builder = new AlertDialog.Builder(RegisterAndRecognizeActivity.this);
+                                    LayoutInflater inflater = getLayoutInflater();
+                                    View dialogView = inflater.inflate(R.layout.custom_dialog, null);
+                                    dialogView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+                                    builder.setView(dialogView);
 
-                                builder.setTitle("Rostro ya registrado");
-                                builder.setCancelable(false);
+                                    builder.setTitle("Rostro ya registrado");
+                                    builder.setCancelable(false);
+
+                                    dialog = builder.create();
+                                    dialog.show();
+                                }
 
                                 // Enable QrReader
                                 matiposViewModel.stopReaders(getApplicationContext());
 
-                                dialog = builder.create();
-                                dialog.show();
                             }
                         }
 
@@ -300,7 +306,6 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
                 dialog.dismiss();
 
             // Star led module
-            Gpio gpio = new Gpio();
             int ledColor = CommonConstants.LedColor.WHITE_LED;
             int ledSecondsInOn = ConfigUtil.getMatiposSecondsEnableLed(RegisterAndRecognizeActivity.this) * 1000;
 
@@ -326,7 +331,8 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
                 ledColor = response.getStatus() ? CommonConstants.LedColor.GREEN_LED : CommonConstants.LedColor.RED_LED;
                 linearLayout.setBackgroundResource(response.getStatus() ? R.drawable.ok : R.drawable.no);
 
-                mediaPlayerInfoMessage = MediaPlayer.create(RegisterAndRecognizeActivity.this, response.getStatus() ? R.raw.ok : R.raw.no);
+                int audioId = ConfigUtil.isInputDevice(RegisterAndRecognizeActivity.this) ? R.raw.ok : R.raw.ok_salida;
+                mediaPlayerInfoMessage = MediaPlayer.create(RegisterAndRecognizeActivity.this, response.getStatus() ? audioId : R.raw.no);
 
             } else {
                 linearLayout.setBackgroundResource(R.drawable.warning);
@@ -370,7 +376,9 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
 
                 // TODO: Back to menu using password
                 this.actionAfterFinish = NAVIGATE_TO_HOME_ACTIVITY;
+
                 // finish();
+
                 AlertDialog.Builder builder = new AlertDialog.Builder(RegisterAndRecognizeActivity.this);
                 LayoutInflater inflater = getLayoutInflater();
                 View view = inflater.inflate(R.layout.dialog_custom_login, null);
@@ -388,8 +396,12 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
                         TextInputEditText password = view.findViewById(R.id.password);
 
                         if (Objects.requireNonNull(username.getText()).toString().equals(ConfigUtil.getAdminUsername(getApplicationContext()))
-                                && Objects.requireNonNull(password.getText()).toString().equals(ConfigUtil.getAdminPassword(getApplicationContext())))
+                                && Objects.requireNonNull(password.getText()).toString().equals(ConfigUtil.getAdminPassword(getApplicationContext()))) {
+                            if (gpio != null)
+                                gpio.off();
+
                             finish();
+                        }
                         else
                             showToast("Usuario o Contraseña incorrecto");
 
@@ -417,6 +429,14 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
         //在布局结束后才做初始化操作
         binding.dualCameraTexturePreviewRgb.getViewTreeObserver().addOnGlobalLayoutListener(this);
         binding.setCompareResultList(recognizeViewModel.getCompareResultList().getValue());
+
+        if (ConfigUtil.isWhiteLightEnable(RegisterAndRecognizeActivity.this)){
+            gpio.write(RegisterAndRecognizeActivity.this, CommonConstants.LedType.FILL_LIGHT_1, CommonConstants.LedColor.WHITE_LED, 255);
+        }
+        else {
+            if (gpio != null)
+                gpio.off();
+        }
     }
 
     @Override

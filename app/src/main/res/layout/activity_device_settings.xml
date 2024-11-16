@@ -30,7 +30,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:checked="true"
-            android:text="Face Recognition"/>
+            android:text="Reconocimiento facial"/>
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:textColor="@color/colorAccent"
+            android:id="@+id/switchCameraLight"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="Luz camara"/>
 
         <com.google.android.material.switchmaterial.SwitchMaterial
             android:textColor="@color/colorAccent"
@@ -38,7 +46,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:checked="true"
-            android:text="QR Reader"/>
+            android:text="Lector QR"/>
 
         <com.google.android.material.switchmaterial.SwitchMaterial
             android:textColor="@color/colorAccent"
@@ -46,7 +54,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:checked="true"
-            android:text="NFC Reader"/>
+            android:text="Lector NFC"/>
 
 
     </LinearLayout>

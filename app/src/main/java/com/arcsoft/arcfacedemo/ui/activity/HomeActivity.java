@@ -130,8 +130,8 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener {
 
         // Matipos options
         activityHomeBinding.llRootView.addView(new NavigateItemView(this, R.drawable.baseline_checklist_24, "Auditoria Codigos Matipos", AuditActivity.class));
-        activityHomeBinding.llRootView.addView(new NavigateItemView(this, R.drawable.baseline_computer_24, "Matipos Server Settings", MatiposServerSettingsActivity.class));
-        activityHomeBinding.llRootView.addView(new NavigateItemView(this, R.drawable.ic_debug, "Devices Settings", DeviceSettingsActivity.class));
+        activityHomeBinding.llRootView.addView(new NavigateItemView(this, R.drawable.baseline_computer_24, "Configuracion Servidor Matipos", MatiposServerSettingsActivity.class));
+        activityHomeBinding.llRootView.addView(new NavigateItemView(this, R.drawable.ic_debug, "Configuracion Dispositivos", DeviceSettingsActivity.class));
 
 
         activeView = new NavigateItemView(this, R.drawable.ic_online_active, getString(R.string.active_engine), "", ActivationActivity.class);

@@ -16,6 +16,7 @@ import com.google.android.material.switchmaterial.SwitchMaterial;
 public class DeviceSettingsActivity extends BaseActivity {
 
     SwitchMaterial switchFaceRecognition;
+    SwitchMaterial switchCameraLight;
     SwitchMaterial switchQrReaderEnable;
     SwitchMaterial switchNfcReaderEnable;
 
@@ -43,6 +44,9 @@ public class DeviceSettingsActivity extends BaseActivity {
         switchFaceRecognition = findViewById(R.id.switchFaceRecognition);
         switchFaceRecognition.setChecked(ConfigUtil.isMatiposFaceRecognitionEnable(DeviceSettingsActivity.this));
 
+        switchCameraLight = findViewById(R.id.switchCameraLight);
+        switchCameraLight.setChecked(ConfigUtil.isWhiteLightEnable(DeviceSettingsActivity.this));
+
         switchQrReaderEnable = findViewById(R.id.switchQrReader);
         switchQrReaderEnable.setChecked(ConfigUtil.isMatiposIsQrReaderEnable(DeviceSettingsActivity.this));
 
@@ -64,9 +68,11 @@ public class DeviceSettingsActivity extends BaseActivity {
                 public void onClick(DialogInterface dialog, int which) {
                     boolean isError = true;
                     if (ConfigUtil.setMatiposFaceRecognition(DeviceSettingsActivity.this, switchFaceRecognition.isChecked())) {
-                        if (ConfigUtil.setQrReader(DeviceSettingsActivity.this, switchQrReaderEnable.isChecked())) {
-                            if (ConfigUtil.setNfcReader(DeviceSettingsActivity.this, switchNfcReaderEnable.isChecked())) {
-                                isError = false;
+                        if (ConfigUtil.setWhiteLight(DeviceSettingsActivity.this, switchCameraLight.isChecked())) {
+                            if (ConfigUtil.setQrReader(DeviceSettingsActivity.this, switchQrReaderEnable.isChecked())) {
+                                if (ConfigUtil.setNfcReader(DeviceSettingsActivity.this, switchNfcReaderEnable.isChecked())) {
+                                    isError = false;
+                                }
                             }
                         }
                     }

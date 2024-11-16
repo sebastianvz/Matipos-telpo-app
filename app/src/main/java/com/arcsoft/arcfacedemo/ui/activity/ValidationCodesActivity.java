@@ -149,7 +149,9 @@ public class ValidationCodesActivity extends BaseActivity {
                 textView.setText(response.getAns());
                 ledColor = response.getStatus() ? CommonConstants.LedColor.GREEN_LED : CommonConstants.LedColor.RED_LED;
                 linearLayout.setBackgroundResource(response.getStatus() ? R.drawable.ok : R.drawable.no);
-                mediaPlayerInfoMessage = MediaPlayer.create(ValidationCodesActivity.this, response.getStatus() ? R.raw.ok : R.raw.no);
+
+                int audioId = ConfigUtil.isInputDevice(ValidationCodesActivity.this) ? R.raw.ok : R.raw.ok_salida;
+                mediaPlayerInfoMessage = MediaPlayer.create(ValidationCodesActivity.this, response.getStatus() ? audioId : R.raw.no);
             } else {
                 linearLayout.setBackgroundResource(R.drawable.warning);
                 TextView textView = linearLayout.findViewById(R.id.title);
