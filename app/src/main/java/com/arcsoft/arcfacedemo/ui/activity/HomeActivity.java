@@ -25,6 +25,7 @@ import com.arcsoft.arcfacedemo.ui.viewmodel.HomeViewModel;
 import com.arcsoft.arcfacedemo.util.ConfigUtil;
 import com.arcsoft.arcfacedemo.util.ErrorCodeUtil;
 import com.arcsoft.arcfacedemo.widget.NavigateItemView;
+import com.arcsoft.face.BuildConfig;
 import com.arcsoft.face.ErrorInfo;
 import com.arcsoft.face.FaceEngine;
 import com.arcsoft.face.VersionInfo;
@@ -114,7 +115,7 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener {
     private void initView() {
         VersionInfo versionInfo = new VersionInfo();
         if (FaceEngine.getVersion(versionInfo) == ErrorInfo.MOK) {
-            activityHomeBinding.setSdkVersion("Phone/Tablet Version:" + versionInfo.getVersion());
+            activityHomeBinding.setSdkVersion(BuildConfig.VERSION_NAME);
         }
 
         activityHomeBinding.llRootView.addView(new NavigateItemView(this, R.drawable.logo_app, "Validacion Matipos", ValidationCodesActivity.class));
