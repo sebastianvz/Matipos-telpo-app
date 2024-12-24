@@ -38,10 +38,12 @@ public class MatiposViewModel extends ViewModel {
 
     public void startReaders(Context context, boolean isQrReaderEnable, boolean isNfcReaderEnable) {
         // Start qrReader
-        if (qrReader == null) qrReader = QrReader.getInstance(context);
+        if (qrReader == null) {
+            qrReader = QrReader.getInstance(context);
+            qrReader.startDecodeReader(context);
+        }
 
         if (isQrReaderEnable) {
-            qrReader.startDecodeReader(context);
             qrValidationCode = (MutableLiveData<String>) qrReader.getValue();
         } else {
             qrReader.stopDecodeReader();
@@ -71,7 +73,12 @@ public class MatiposViewModel extends ViewModel {
 
     public void postValidationCode(Context context, String code, String macAddress) {
         if (matiposServer == null) matiposServer = new MatiposServer();
-        matiposServer.run(context, code, macAddress);
+        matiposServer.requestMatiposServer(context, code, macAddress);
+    }
+
+    public void postValidationCode(Context context, String code, String macAddress, long faceId) {
+        if (matiposServer == null) matiposServer = new MatiposServer();
+        matiposServer.requestMatiposServer(context, code, macAddress, faceId);
     }
 
     public LiveData<MatiposResponseServer> getMatiposResponse() {

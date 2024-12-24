@@ -6,6 +6,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -115,7 +116,11 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener {
     private void initView() {
         VersionInfo versionInfo = new VersionInfo();
         if (FaceEngine.getVersion(versionInfo) == ErrorInfo.MOK) {
-            activityHomeBinding.setSdkVersion(BuildConfig.VERSION_NAME);
+            try {
+                activityHomeBinding.setSdkVersion(getPackageManager().getPackageInfo(getPackageName(), 0).versionName);
+            } catch (PackageManager.NameNotFoundException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         activityHomeBinding.llRootView.addView(new NavigateItemView(this, R.drawable.logo_app, "Validacion Matipos", ValidationCodesActivity.class));

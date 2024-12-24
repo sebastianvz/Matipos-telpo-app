@@ -7,10 +7,13 @@ public class MatiposRequestServer {
     private final String macAddress;
     private final String address;
 
+    private long faceId;
+
     public MatiposRequestServer(String entryCode, String macAddress, String address) {
         this.entryCode = entryCode;
         this.macAddress = macAddress;
         this.address = address;
+        this.faceId = 0;
     }
 
     public String getEntryCode() {
@@ -23,6 +26,11 @@ public class MatiposRequestServer {
 
     public String getAddress() {
         return address;
+    }
+
+    public void setFaceId(long faceId)
+    {
+        this.faceId = faceId;
     }
 
     @NonNull

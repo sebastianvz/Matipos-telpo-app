@@ -68,7 +68,7 @@ public class MatiposServerSettingsActivity extends BaseActivity {
             builder.setView(dialogView);
 
             // Optionally, set title and buttons
-            builder.setTitle("Update parameters");
+            builder.setTitle("Actualizar configuraciones");
             builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
