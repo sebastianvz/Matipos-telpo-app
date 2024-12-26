@@ -12,6 +12,7 @@ import androidx.lifecycle.ViewModel;
 
 import com.arcsoft.arcfacedemo.ArcFaceApplication;
 import com.arcsoft.arcfacedemo.R;
+import com.arcsoft.arcfacedemo.facedb.entity.FaceEntity;
 import com.arcsoft.arcfacedemo.faceserver.FaceServer;
 import com.arcsoft.arcfacedemo.ui.callback.OnRegisterFinishedCallback;
 import com.arcsoft.arcfacedemo.ui.model.CompareResult;
@@ -67,9 +68,12 @@ public class RecognizeViewModel extends ViewModel implements RecognizeCallback {
         private int index;
         private EventType eventType;
 
+        private FaceEntity faceEntity;
+
         public FaceItemEvent(int index, EventType eventType) {
             this.index = index;
             this.eventType = eventType;
+            this.faceEntity = null;
         }
 
         public int getIndex() {
@@ -86,6 +90,16 @@ public class RecognizeViewModel extends ViewModel implements RecognizeCallback {
 
         public void setEventType(EventType eventType) {
             this.eventType = eventType;
+        }
+
+        public void setFaceEntity(FaceEntity faceEntity)
+        {
+            this.faceEntity = faceEntity;
+        }
+
+        public FaceEntity getFaceEntity()
+        {
+            return faceEntity;
         }
     }
 
@@ -472,7 +486,9 @@ public class RecognizeViewModel extends ViewModel implements RecognizeCallback {
                     }
                     if (compareResults != null) {
                         compareResults.add(compareResult);
-                        getFaceItemEventMutableLiveData().postValue(new FaceItemEvent(compareResults.size() - 1, EventType.INSERTED));
+                        FaceItemEvent faceItemEvent = new FaceItemEvent(compareResults.size() - 1, EventType.INSERTED);
+                        faceItemEvent.setFaceEntity(compareResult.getFaceEntity());
+                        getFaceItemEventMutableLiveData().postValue(faceItemEvent);
                     }
                 }
             }

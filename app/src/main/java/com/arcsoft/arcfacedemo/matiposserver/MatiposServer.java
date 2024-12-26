@@ -31,13 +31,27 @@ public class MatiposServer {
     public MatiposServer() {
     }
 
-    public void run(Context context, String code, String macAddress) {
+    public void requestMatiposServer(Context context, String code, String macAddress) {
         MatiposRequestServer matiposRequestServer = new MatiposRequestServer(
                 code,
                 macAddress,
                 ""
         );
-        new AsyncMatiposRequest().run(context, matiposRequestServer);
+        new AsyncMatiposRequest().run(context, matiposRequestServer, 0);
+    }
+
+    public void requestMatiposServer(Context context, String code, String macAddress, long faceId) {
+        MatiposRequestServer matiposRequestServer = new MatiposRequestServer(
+                code,
+                macAddress,
+                ""
+        );
+        matiposRequestServer.setFaceId(faceId);
+        new AsyncMatiposRequest().run(context, matiposRequestServer, faceId);
+    }
+
+    public void insertLogMovement(Context context, MovementEntity movementEntity) {
+        new AsyncInsertMovement().run(context, movementEntity);
     }
 
     public LiveData<MatiposResponseServer> getMatiposResponseServer() {
@@ -66,12 +80,44 @@ public class MatiposServer {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         Handler handler = new Handler(Looper.getMainLooper());
 
-        public void run(Context context, MatiposRequestServer matiposRequestServer) {
+        public void run(Context context, MatiposRequestServer matiposRequestServer, long faceId) {
             executorService.execute(() -> {
                 MovementEntity movementEntity = new MovementEntity();
-                movementEntity.operationType = "VALIDATE";
+                movementEntity.operationType = faceId == -1 ? "EXIT" : "VALIDATE";
                 movementEntity.requestData = matiposRequestServer.toString();
                 movementEntity.requestDatetime = LocalDateTime.now().toString();
+
+                if (faceId > 0) {
+
+                    movementEntity.faceId = (int) faceId;
+                    movementEntity.operationType = "EXIT";
+
+                    MatiposResponseServer response = null;
+                    MovementEntity lastMovement = AppDatabase.getInstance(context).movementDao().queryGetLastByFaceId((int) faceId);
+                    if (lastMovement != null) {
+                        if (!lastMovement.parseRequest().getEntryCode().equals(matiposRequestServer.getEntryCode())) {
+                            response = new MatiposResponseServer(Boolean.FALSE, matiposRequestServer.getAddress(), LocalDateTime.now().toString(), "Codigo no coincide");
+                        }
+                    }
+                    else {
+                        response = new MatiposResponseServer(Boolean.FALSE, matiposRequestServer.getAddress(), LocalDateTime.now().toString(), "No existe registro con codigo");
+                    }
+
+                    if (response != null) {
+                        movementEntity.responseData = response.toString();
+                        movementEntity.responseDatetime = LocalDateTime.now().toString();
+
+                        AppDatabase.getInstance(context).movementDao().insert(movementEntity);
+
+                        if (matiposResponseServerMutableLiveData == null)
+                            matiposResponseServerMutableLiveData = new MutableLiveData<>();
+
+                        matiposResponseServerMutableLiveData.postValue(response);
+
+                        return;
+                    }
+
+                }
 
                 // Request
                 MatiposResponseServer matiposResponseServer = null;
@@ -104,6 +150,16 @@ public class MatiposServer {
 
                 matiposResponseServerMutableLiveData.postValue(response);
 
+            });
+        }
+    }
+
+    private static class AsyncInsertMovement {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+
+        public void run(Context context, MovementEntity movementEntity) {
+            executorService.execute(() -> {
+                long id = AppDatabase.getInstance(context).movementDao().insert(movementEntity);
             });
         }
     }

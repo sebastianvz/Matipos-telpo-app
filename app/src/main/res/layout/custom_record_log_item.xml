@@ -29,6 +29,7 @@
         android:layout_toEndOf="@+id/image_view"
         android:layout_below="@+id/validation_code"
         android:textColor="@color/colorAccent"
+        android:textSize="10sp"
         android:text="Fecha y Hora"/>
 
     <LinearLayout

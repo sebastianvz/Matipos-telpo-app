@@ -32,4 +32,7 @@ public interface MovementDao {
 
     @Query("select * from movement where movementId = :movementId limit 1")
     MovementEntity queryByMovementId(int movementId);
+
+    @Query("select * from movement where face_id = :faceId AND operation_type = 'VALIDATE' ORDER BY 1 DESC LIMIT 1")
+    MovementEntity queryGetLastByFaceId(int faceId);
 }

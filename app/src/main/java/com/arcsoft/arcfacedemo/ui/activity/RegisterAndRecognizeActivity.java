@@ -9,7 +9,6 @@ import android.graphics.Color;
 import android.graphics.Point;
 import android.hardware.Camera;
 import android.media.MediaPlayer;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -28,10 +27,11 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.arcsoft.arcfacedemo.R;
+import com.arcsoft.arcfacedemo.common.MatiposRequestServer;
 import com.arcsoft.arcfacedemo.common.MatiposResponseServer;
 import com.arcsoft.arcfacedemo.databinding.ActivityRegisterAndRecognizeBinding;
-import com.arcsoft.arcfacedemo.facedb.AppDatabase;
 import com.arcsoft.arcfacedemo.facedb.entity.MovementEntity;
+import com.arcsoft.arcfacedemo.matiposserver.MatiposServer;
 import com.arcsoft.arcfacedemo.ui.model.PreviewConfig;
 import com.arcsoft.arcfacedemo.ui.viewmodel.MatiposViewModel;
 import com.arcsoft.arcfacedemo.ui.viewmodel.RecognizeViewModel;
@@ -43,14 +43,13 @@ import com.arcsoft.arcfacedemo.util.camera.DualCameraHelper;
 import com.arcsoft.arcfacedemo.util.face.constants.LivenessType;
 import com.arcsoft.arcfacedemo.util.face.model.FacePreviewInfo;
 import com.arcsoft.arcfacedemo.util.gpios.Gpio;
-import com.arcsoft.arcfacedemo.util.qr.QrReader;
 import com.arcsoft.arcfacedemo.widget.FaceRectView;
 import com.arcsoft.arcfacedemo.widget.RecognizeAreaView;
 import com.arcsoft.face.ErrorInfo;
 import com.common.CommonConstants;
-import com.common.apiutil.led.Led;
 import com.google.android.material.textfield.TextInputEditText;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -91,6 +90,7 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
     private MatiposResponseServer matiposResponseServer;
     private boolean inProgres = false;
     private Gpio gpio;
+    private long currentFaceID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -153,7 +153,10 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
             matiposViewModel.stopReaders(RegisterAndRecognizeActivity.this);
 
             inProgres = true;
-            validateCode(RegisterAndRecognizeActivity.this, data);
+            if (currentFaceID == 0)
+                validateCode(RegisterAndRecognizeActivity.this, data);
+            else
+                validateCode(RegisterAndRecognizeActivity.this, data, currentFaceID);
 
         }
     }
@@ -215,8 +218,35 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
                             boolean isInputDevice = ConfigUtil.isInputDevice(getApplicationContext());
                             if (!isInputDevice) {
                                 if (!ConfigUtil.isMatiposIsQrReaderEnable(getApplicationContext()) && !ConfigUtil.isMatiposIsNfcReaderEnable(getApplicationContext())) {
-                                    gpio.toggle(RegisterAndRecognizeActivity.this, CommonConstants.LedType.FILL_LIGHT_1, CommonConstants.LedColor.GREEN_LED, 1000);
-                                } else {
+
+                                    MatiposRequestServer requestServer = new MatiposRequestServer(
+                                            "FACE_DETECTION",
+                                            "",
+                                            ""
+                                    );
+
+                                    MatiposResponseServer responseServer = new MatiposResponseServer(
+                                            Boolean.TRUE,
+                                            "FaceRecognigtion",
+                                            LocalDateTime.now().toString(),
+                                            "Validacion rostro exitosa"
+                                    );
+
+                                    MovementEntity movementEntity = new MovementEntity();
+                                    movementEntity.operationType = "VALIDATE";
+                                    movementEntity.requestData = requestServer.toString();
+                                    movementEntity.requestDatetime = LocalDateTime.now().toString();
+                                    movementEntity.faceId = (int) faceItemEvent.getFaceEntity().getFaceId();
+                                    movementEntity.responseData =responseServer.toString();
+                                    movementEntity.responseDatetime = LocalDateTime.now().toString();
+
+                                    new MatiposServer().insertLogMovement(getApplicationContext(), movementEntity);
+
+                                    inProgres = Boolean.TRUE;
+                                    showDialog(responseServer);
+
+                                }
+                                else {
 
                                     if (dialog != null) {
                                         dialog.dismiss();
@@ -238,15 +268,42 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
                                     dialog = builder.create();
                                     dialog.show();
 
+                                    currentFaceID = faceItemEvent.getFaceEntity().getFaceId();
+
                                     initReaders();
                                 }
-                            } else {
+                            }
+                            else {
                                 if (dialog != null) {
                                     dialog.dismiss();
                                 }
 
                                 if (!ConfigUtil.isMatiposIsQrReaderEnable(getApplicationContext()) && !ConfigUtil.isMatiposIsNfcReaderEnable(getApplicationContext())) {
-                                    gpio.toggle(RegisterAndRecognizeActivity.this, CommonConstants.LedType.FILL_LIGHT_1, CommonConstants.LedColor.GREEN_LED, 1000);
+                                    MatiposRequestServer requestServer = new MatiposRequestServer(
+                                            "FACE_DETECTION",
+                                            "",
+                                            ""
+                                    );
+
+                                    MatiposResponseServer responseServer = new MatiposResponseServer(
+                                            Boolean.TRUE,
+                                            "FaceRecognigtion",
+                                            LocalDateTime.now().toString(),
+                                            "Validacion rostro exitosa"
+                                    );
+
+                                    MovementEntity movementEntity = new MovementEntity();
+                                    movementEntity.operationType = "VALIDATE";
+                                    movementEntity.requestData = requestServer.toString();
+                                    movementEntity.requestDatetime = LocalDateTime.now().toString();
+                                    movementEntity.faceId = (int) faceItemEvent.getFaceEntity().getFaceId();
+                                    movementEntity.responseData =responseServer.toString();
+                                    movementEntity.responseDatetime = LocalDateTime.now().toString();
+
+                                    new MatiposServer().insertLogMovement(getApplicationContext(), movementEntity);
+
+                                    inProgres = Boolean.TRUE;
+                                    showDialog(responseServer);
                                 }
                                 else {
                                     // Build dialog of register user
@@ -262,6 +319,8 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
                                     dialog = builder.create();
                                     dialog.show();
                                 }
+
+                                currentFaceID = 0;
 
                                 // Enable QrReader
                                 matiposViewModel.stopReaders(getApplicationContext());
@@ -297,65 +356,7 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
         ).get(MatiposViewModel.class);
 
 
-        matiposViewModel.getMatiposResponse().observe(this, response -> {
-
-            if (!inProgres)
-                return;
-
-            if (dialog != null)
-                dialog.dismiss();
-
-            // Star led module
-            int ledColor = CommonConstants.LedColor.WHITE_LED;
-            int ledSecondsInOn = ConfigUtil.getMatiposSecondsEnableLed(RegisterAndRecognizeActivity.this) * 1000;
-
-            // Show dialog with information
-            AlertDialog.Builder builder = new AlertDialog.Builder(RegisterAndRecognizeActivity.this);
-            LayoutInflater inflater = RegisterAndRecognizeActivity.this.getLayoutInflater();
-            View view = inflater.inflate(R.layout.dialog_matipos_server_response, null);
-            view.setSystemUiVisibility(View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
-            builder.setView(view);
-            builder.setCancelable(false);
-            LinearLayout linearLayout = view.findViewById(R.id.validate_code_container);
-
-            if (mediaPlayerInfoMessage != null) {
-                mediaPlayerInfoMessage.stop();
-                mediaPlayerInfoMessage.release();
-                mediaPlayerInfoMessage = null;
-            }
-
-            // Message information
-            if (response.getStatus() != null) {
-                TextView textView = linearLayout.findViewById(R.id.title);
-                textView.setText(response.getAns());
-                ledColor = response.getStatus() ? CommonConstants.LedColor.GREEN_LED : CommonConstants.LedColor.RED_LED;
-                linearLayout.setBackgroundResource(response.getStatus() ? R.drawable.ok : R.drawable.no);
-
-                int audioId = ConfigUtil.isInputDevice(RegisterAndRecognizeActivity.this) ? R.raw.ok : R.raw.ok_salida;
-                mediaPlayerInfoMessage = MediaPlayer.create(RegisterAndRecognizeActivity.this, response.getStatus() ? audioId : R.raw.no);
-
-            } else {
-                linearLayout.setBackgroundResource(R.drawable.warning);
-                TextView textView = linearLayout.findViewById(R.id.title);
-                textView.setText(response.getAns());
-                mediaPlayerInfoMessage = MediaPlayer.create(RegisterAndRecognizeActivity.this, R.raw.warning);
-            }
-
-            // Turn ON Led
-            mediaPlayerInfoMessage.start();
-            gpio.toggle(RegisterAndRecognizeActivity.this, CommonConstants.LedType.FILL_LIGHT_1, ledColor, ledSecondsInOn);
-
-            dialog = builder.create();
-            dialog.show();
-
-            matiposResponseServer = response;
-
-            if (ConfigUtil.isInputDevice(getApplicationContext())) {
-                if (response.getStatus())
-                    recognizeViewModel.prepareRegister();
-            }
-            matiposViewModel.startProcessToEndingValidateCode(mediaPlayerInfoMessage, ledSecondsInOn);
-        });
+        matiposViewModel.getMatiposResponse().observe(this, this::showDialog);
 
         matiposViewModel.IsProcessEnding().observe(this, isEnd -> {
             if (isEnd) {
@@ -367,6 +368,67 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
             }
         });
 
+    }
+
+    private void showDialog(MatiposResponseServer response)
+    {
+        if (!inProgres)
+            return;
+
+        if (dialog != null)
+            dialog.dismiss();
+
+        // Star led module
+        int ledColor = CommonConstants.LedColor.WHITE_LED;
+        int ledSecondsInOn = ConfigUtil.getMatiposSecondsEnableLed(RegisterAndRecognizeActivity.this) * 1000;
+
+        // Show dialog with information
+        AlertDialog.Builder builder = new AlertDialog.Builder(RegisterAndRecognizeActivity.this);
+        LayoutInflater inflater = RegisterAndRecognizeActivity.this.getLayoutInflater();
+        View view = inflater.inflate(R.layout.dialog_matipos_server_response, null);
+        view.setSystemUiVisibility(View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+        builder.setView(view);
+        builder.setCancelable(false);
+        LinearLayout linearLayout = view.findViewById(R.id.validate_code_container);
+
+        if (mediaPlayerInfoMessage != null) {
+            mediaPlayerInfoMessage.stop();
+            mediaPlayerInfoMessage.release();
+            mediaPlayerInfoMessage = null;
+        }
+
+        // Message information
+        if (response.getStatus() != null) {
+            TextView textView = linearLayout.findViewById(R.id.title);
+            textView.setText(response.getAns());
+            ledColor = response.getStatus() ? CommonConstants.LedColor.GREEN_LED : CommonConstants.LedColor.RED_LED;
+            linearLayout.setBackgroundResource(response.getStatus() ? R.drawable.ok : R.drawable.no);
+
+            int audioId = ConfigUtil.isInputDevice(RegisterAndRecognizeActivity.this) ? R.raw.ok : R.raw.ok_salida;
+            mediaPlayerInfoMessage = MediaPlayer.create(RegisterAndRecognizeActivity.this, response.getStatus() ? audioId : R.raw.no);
+
+        } else {
+            linearLayout.setBackgroundResource(R.drawable.warning);
+            TextView textView = linearLayout.findViewById(R.id.title);
+            textView.setText(response.getAns());
+            mediaPlayerInfoMessage = MediaPlayer.create(RegisterAndRecognizeActivity.this, R.raw.warning);
+        }
+
+        // Turn ON Led
+        mediaPlayerInfoMessage.start();
+        gpio.toggle(RegisterAndRecognizeActivity.this, CommonConstants.LedType.FILL_LIGHT_1, ledColor, ledSecondsInOn);
+
+        dialog = builder.create();
+        dialog.show();
+
+        matiposResponseServer = response;
+
+        if (ConfigUtil.isInputDevice(getApplicationContext())) {
+            if (response.getStatus())
+                if (ConfigUtil.isMatiposIsQrReaderEnable(getApplicationContext()) || ConfigUtil.isMatiposIsNfcReaderEnable(getApplicationContext()))
+                    recognizeViewModel.prepareRegister();
+        }
+        matiposViewModel.startProcessToEndingValidateCode(mediaPlayerInfoMessage, ledSecondsInOn);
     }
 
     private void initView() {
@@ -834,7 +896,15 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
 
     // Matipos Server
     public void validateCode(Context context, String code) {
-        matiposViewModel.postValidationCode(context, code, ConfigUtil.getMatiposDeviceCode(context));
+        boolean isInputDevice = ConfigUtil.isInputDevice(getApplicationContext());
+        if (!isInputDevice)
+            matiposViewModel.postValidationCode(context, code, ConfigUtil.getMatiposDeviceCode(context), -1);
+        else
+            matiposViewModel.postValidationCode(context, code, ConfigUtil.getMatiposDeviceCode(context), 0);
+    }
+
+    public void validateCode(Context context, String code, long faceId) {
+        matiposViewModel.postValidationCode(context, code, ConfigUtil.getMatiposDeviceCode(context), faceId);
     }
 
     @Override

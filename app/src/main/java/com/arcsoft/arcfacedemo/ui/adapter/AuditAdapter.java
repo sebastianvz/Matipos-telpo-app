@@ -3,6 +3,7 @@ package com.arcsoft.arcfacedemo.ui.adapter;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
@@ -12,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.arcsoft.arcfacedemo.R;
 import com.arcsoft.arcfacedemo.facedb.entity.MovementEntity;
+import com.arcsoft.arcfacedemo.ui.activity.HomeActivity;
 
 import java.io.File;
 import java.util.List;
@@ -36,6 +38,8 @@ public class AuditAdapter extends RecyclerView.Adapter<AuditViewHolder> {
     public void onBindViewHolder(@NonNull AuditViewHolder holder, int position) {
         try {
             holder.codeView.setText(items.get(position).parseRequest().getEntryCode());
+            holder.codeView.setTextColor(items.get(position).parseResponse().getStatus() ? Color.BLACK : Color.RED);
+
             holder.datetimeView.setText(items.get(position).requestDatetime);
 
             try {
