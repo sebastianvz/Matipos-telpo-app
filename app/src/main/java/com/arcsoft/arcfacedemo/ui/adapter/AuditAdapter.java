@@ -43,6 +43,7 @@ public class AuditAdapter extends RecyclerView.Adapter<AuditViewHolder> {
             holder.datetimeView.setText(items.get(position).requestDatetime);
 
             try {
+                holder.movementType.setBackgroundResource(items.get(position).getOperationType().equals("EXIT") ? R.drawable.baseline_arrow_circle_left_24 : R.drawable.baseline_arrow_circle_right_24);
                 if (items.get(position).getFaceEntity() != null) {
                     String imagePath = items.get(position).getFaceEntity().getImagePath();
                     if (imagePath != null) {

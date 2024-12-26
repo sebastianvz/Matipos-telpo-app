@@ -11,12 +11,13 @@ import com.arcsoft.arcfacedemo.R;
 
 public class AuditViewHolder extends RecyclerView.ViewHolder {
 
-    ImageView imageView;
+    ImageView imageView, movementType;
     TextView codeView, datetimeView;
     public AuditViewHolder(@NonNull View itemView) {
         super(itemView);
         imageView = itemView.findViewById(R.id.image_view);
         codeView = itemView.findViewById(R.id.validation_code);
         datetimeView = itemView.findViewById(R.id.validation_datetime);
+        movementType = itemView.findViewById(R.id.image_view_movement_type);
     }
 }
