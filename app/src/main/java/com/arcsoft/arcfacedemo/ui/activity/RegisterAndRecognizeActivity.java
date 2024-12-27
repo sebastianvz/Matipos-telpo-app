@@ -208,127 +208,132 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
             RecyclerView.Adapter adapter = binding.dualCameraRecyclerViewPerson.getAdapter();
             switch (faceItemEvent.getEventType()) {
                 case REMOVED:
-                    if (adapter != null) {
-                        adapter.notifyItemRemoved(faceItemEvent.getIndex());
+                    try {
+                        if (adapter != null) {
+                            adapter.notifyItemRemoved(faceItemEvent.getIndex());
+                        }
+                    } catch (Exception ignored) {
+                        
                     }
                     break;
                 case INSERTED:
-                    if (adapter != null) {
-                        if (touchCounter <= 2) {
-                            boolean isInputDevice = ConfigUtil.isInputDevice(getApplicationContext());
-                            if (!isInputDevice) {
-                                if (!ConfigUtil.isMatiposIsQrReaderEnable(getApplicationContext()) && !ConfigUtil.isMatiposIsNfcReaderEnable(getApplicationContext())) {
+                    try {
+                        if (adapter != null && !inProgres) {
+                            if (touchCounter <= 2) {
+                                boolean isInputDevice = ConfigUtil.isInputDevice(getApplicationContext());
+                                if (!isInputDevice) {
+                                    if (!ConfigUtil.isMatiposIsQrReaderEnable(getApplicationContext()) && !ConfigUtil.isMatiposIsNfcReaderEnable(getApplicationContext())) {
 
-                                    MatiposRequestServer requestServer = new MatiposRequestServer(
-                                            "FACE_DETECTION",
-                                            "",
-                                            ""
-                                    );
+                                        MatiposRequestServer requestServer = new MatiposRequestServer(
+                                                "FACE_DETECTION",
+                                                "",
+                                                ""
+                                        );
 
-                                    MatiposResponseServer responseServer = new MatiposResponseServer(
-                                            Boolean.TRUE,
-                                            "FaceRecognigtion",
-                                            LocalDateTime.now().toString(),
-                                            "Validacion rostro exitosa"
-                                    );
+                                        MatiposResponseServer responseServer = new MatiposResponseServer(
+                                                Boolean.TRUE,
+                                                "FaceRecognigtion",
+                                                LocalDateTime.now().toString(),
+                                                "Validacion rostro exitosa"
+                                        );
 
-                                    MovementEntity movementEntity = new MovementEntity();
-                                    movementEntity.operationType = "VALIDATE";
-                                    movementEntity.requestData = requestServer.toString();
-                                    movementEntity.requestDatetime = LocalDateTime.now().toString();
-                                    movementEntity.faceId = (int) faceItemEvent.getFaceEntity().getFaceId();
-                                    movementEntity.responseData =responseServer.toString();
-                                    movementEntity.responseDatetime = LocalDateTime.now().toString();
+                                        MovementEntity movementEntity = new MovementEntity();
+                                        movementEntity.operationType = "VALIDATE";
+                                        movementEntity.requestData = requestServer.toString();
+                                        movementEntity.requestDatetime = LocalDateTime.now().toString();
+                                        movementEntity.faceId = (int) faceItemEvent.getFaceEntity().getFaceId();
+                                        movementEntity.responseData = responseServer.toString();
+                                        movementEntity.responseDatetime = LocalDateTime.now().toString();
 
-                                    new MatiposServer().insertLogMovement(getApplicationContext(), movementEntity);
+                                        new MatiposServer().insertLogMovement(getApplicationContext(), movementEntity);
 
-                                    inProgres = Boolean.TRUE;
-                                    showDialog(responseServer);
+                                        inProgres = Boolean.TRUE;
+                                        showDialog(responseServer);
 
-                                }
-                                else {
+                                    } else {
 
+                                        if (dialog != null) {
+                                            dialog.dismiss();
+                                        }
+
+                                        // Build dialog of register user
+                                        AlertDialog.Builder builder = new AlertDialog.Builder(RegisterAndRecognizeActivity.this);
+                                        LayoutInflater inflater = getLayoutInflater();
+                                        View dialogView = inflater.inflate(R.layout.custom_dialog, null);
+                                        dialogView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+                                        builder.setView(dialogView);
+
+                                        builder.setTitle("Rostro Identificado, por favor leer el codigo");
+                                        builder.setCancelable(false);
+
+                                        // Enable QrReader
+                                        matiposViewModel.stopReaders(getApplicationContext());
+
+                                        dialog = builder.create();
+                                        dialog.show();
+
+                                        currentFaceID = faceItemEvent.getFaceEntity().getFaceId();
+
+                                        initReaders();
+                                    }
+                                } else {
                                     if (dialog != null) {
                                         dialog.dismiss();
                                     }
 
-                                    // Build dialog of register user
-                                    AlertDialog.Builder builder = new AlertDialog.Builder(RegisterAndRecognizeActivity.this);
-                                    LayoutInflater inflater = getLayoutInflater();
-                                    View dialogView = inflater.inflate(R.layout.custom_dialog, null);
-                                    dialogView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-                                    builder.setView(dialogView);
+                                    if (!ConfigUtil.isMatiposIsQrReaderEnable(getApplicationContext()) && !ConfigUtil.isMatiposIsNfcReaderEnable(getApplicationContext())) {
+                                        MatiposRequestServer requestServer = new MatiposRequestServer(
+                                                "FACE_DETECTION",
+                                                "",
+                                                ""
+                                        );
 
-                                    builder.setTitle("Rostro Identificado, por favor leer el codigo");
-                                    builder.setCancelable(false);
+                                        MatiposResponseServer responseServer = new MatiposResponseServer(
+                                                Boolean.TRUE,
+                                                "FaceRecognigtion",
+                                                LocalDateTime.now().toString(),
+                                                "Validacion rostro exitosa"
+                                        );
+
+                                        MovementEntity movementEntity = new MovementEntity();
+                                        movementEntity.operationType = "VALIDATE";
+                                        movementEntity.requestData = requestServer.toString();
+                                        movementEntity.requestDatetime = LocalDateTime.now().toString();
+                                        movementEntity.faceId = (int) faceItemEvent.getFaceEntity().getFaceId();
+                                        movementEntity.responseData = responseServer.toString();
+                                        movementEntity.responseDatetime = LocalDateTime.now().toString();
+
+                                        new MatiposServer().insertLogMovement(getApplicationContext(), movementEntity);
+
+                                        inProgres = Boolean.TRUE;
+                                        showDialog(responseServer);
+                                    } else {
+                                        // Build dialog of register user
+                                        AlertDialog.Builder builder = new AlertDialog.Builder(RegisterAndRecognizeActivity.this);
+                                        LayoutInflater inflater = getLayoutInflater();
+                                        View dialogView = inflater.inflate(R.layout.custom_dialog, null);
+                                        dialogView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+                                        builder.setView(dialogView);
+
+                                        builder.setTitle("Rostro ya registrado");
+                                        builder.setCancelable(false);
+
+                                        dialog = builder.create();
+                                        dialog.show();
+                                    }
+
+                                    currentFaceID = 0;
 
                                     // Enable QrReader
                                     matiposViewModel.stopReaders(getApplicationContext());
 
-                                    dialog = builder.create();
-                                    dialog.show();
-
-                                    currentFaceID = faceItemEvent.getFaceEntity().getFaceId();
-
-                                    initReaders();
                                 }
                             }
-                            else {
-                                if (dialog != null) {
-                                    dialog.dismiss();
-                                }
 
-                                if (!ConfigUtil.isMatiposIsQrReaderEnable(getApplicationContext()) && !ConfigUtil.isMatiposIsNfcReaderEnable(getApplicationContext())) {
-                                    MatiposRequestServer requestServer = new MatiposRequestServer(
-                                            "FACE_DETECTION",
-                                            "",
-                                            ""
-                                    );
-
-                                    MatiposResponseServer responseServer = new MatiposResponseServer(
-                                            Boolean.TRUE,
-                                            "FaceRecognigtion",
-                                            LocalDateTime.now().toString(),
-                                            "Validacion rostro exitosa"
-                                    );
-
-                                    MovementEntity movementEntity = new MovementEntity();
-                                    movementEntity.operationType = "VALIDATE";
-                                    movementEntity.requestData = requestServer.toString();
-                                    movementEntity.requestDatetime = LocalDateTime.now().toString();
-                                    movementEntity.faceId = (int) faceItemEvent.getFaceEntity().getFaceId();
-                                    movementEntity.responseData =responseServer.toString();
-                                    movementEntity.responseDatetime = LocalDateTime.now().toString();
-
-                                    new MatiposServer().insertLogMovement(getApplicationContext(), movementEntity);
-
-                                    inProgres = Boolean.TRUE;
-                                    showDialog(responseServer);
-                                }
-                                else {
-                                    // Build dialog of register user
-                                    AlertDialog.Builder builder = new AlertDialog.Builder(RegisterAndRecognizeActivity.this);
-                                    LayoutInflater inflater = getLayoutInflater();
-                                    View dialogView = inflater.inflate(R.layout.custom_dialog, null);
-                                    dialogView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-                                    builder.setView(dialogView);
-
-                                    builder.setTitle("Rostro ya registrado");
-                                    builder.setCancelable(false);
-
-                                    dialog = builder.create();
-                                    dialog.show();
-                                }
-
-                                currentFaceID = 0;
-
-                                // Enable QrReader
-                                matiposViewModel.stopReaders(getApplicationContext());
-
-                            }
+                            adapter.notifyItemInserted(faceItemEvent.getIndex());
                         }
+                    } catch (Exception ignored){
 
-                        adapter.notifyItemInserted(faceItemEvent.getIndex());
                     }
                     break;
                 default:
@@ -496,6 +501,7 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
             gpio.write(RegisterAndRecognizeActivity.this, CommonConstants.LedType.FILL_LIGHT_1, CommonConstants.LedColor.WHITE_LED, 255);
         }
         else {
+            gpio.write(RegisterAndRecognizeActivity.this, CommonConstants.LedType.FILL_LIGHT_1, CommonConstants.LedColor.WHITE_LED, 0);
             if (gpio != null)
                 gpio.off();
         }
@@ -674,19 +680,25 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
                         }
 
                     } else {
-                        if (dialog != null && touchCounter <= 2) {
-                            dialog.dismiss();
-                            dialog = null;
-                        }
+                        try {
+                            if (!inProgres) {
+                                if (dialog != null && touchCounter <= 2) {
+                                    dialog.dismiss();
+                                    dialog = null;
+                                }
 
-                        if (mediaPlayerInfoMessage != null) {
-                            mediaPlayerInfoMessage.stop();
-                            mediaPlayerInfoMessage.release();
-                            mediaPlayerInfoMessage = null;
-                        }
+                                if (mediaPlayerInfoMessage != null) {
+                                    mediaPlayerInfoMessage.stop();
+                                    mediaPlayerInfoMessage.release();
+                                    mediaPlayerInfoMessage = null;
+                                }
 
-                        if (matiposViewModel != null)
-                            matiposViewModel.stopReaders(RegisterAndRecognizeActivity.this);
+                                if (matiposViewModel != null)
+                                    matiposViewModel.stopReaders(RegisterAndRecognizeActivity.this);
+                            }
+                        } catch (Exception ignored) {
+                            Log.i(TAG, "onPreview: ");
+                        }
                     }
                 }
                 recognizeViewModel.clearLeftFace(facePreviewInfoList);

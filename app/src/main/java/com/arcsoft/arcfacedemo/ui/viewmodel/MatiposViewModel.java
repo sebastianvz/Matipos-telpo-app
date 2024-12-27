@@ -40,10 +40,10 @@ public class MatiposViewModel extends ViewModel {
         // Start qrReader
         if (qrReader == null) {
             qrReader = QrReader.getInstance(context);
-            qrReader.startDecodeReader(context);
         }
 
         if (isQrReaderEnable) {
+            qrReader.startDecodeReader(context);
             qrValidationCode = (MutableLiveData<String>) qrReader.getValue();
         } else {
             qrReader.stopDecodeReader();

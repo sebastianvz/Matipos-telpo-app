@@ -1,36 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:orientation="vertical"
     android:paddingTop="10dp"
     android:paddingStart="20dp"
     android:paddingEnd="20dp">
 
-    <ImageView
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:id="@+id/image_view"
-        android:layout_marginEnd="10dp"
-        android:layout_centerVertical="true"/>
-
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/validation_code"
-        android:layout_toEndOf="@+id/image_view"
-        android:textColor="@color/colorAccent"
-        android:textSize="20sp"
-        android:text="Codigo"/>
+        android:orientation="horizontal">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/validation_datetime"
-        android:layout_toEndOf="@+id/image_view"
-        android:layout_below="@+id/validation_code"
-        android:textColor="@color/colorAccent"
-        android:textSize="10sp"
-        android:text="Fecha y Hora"/>
+        <ImageView
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:id="@+id/image_view"
+            android:layout_marginEnd="10dp"
+            android:layout_centerVertical="true"/>
+
+
+        <LinearLayout
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/validation_code"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_toEndOf="@+id/image_view"
+                android:text="Codigo"
+                android:textColor="@color/colorAccent"
+                android:textSize="20sp" />
+
+            <TextView
+                android:id="@+id/validation_datetime"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/validation_code"
+                android:layout_toEndOf="@+id/image_view"
+                android:text="Fecha y Hora"
+                android:textColor="@color/colorAccent"
+                android:textSize="10sp" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:id="@+id/image_view_movement_type"
+                android:layout_marginEnd="10dp"
+                android:layout_centerVertical="true"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -39,4 +68,4 @@
         android:layout_marginTop="10dp"
         android:background="@color/colorAccent"/>
 
-</RelativeLayout>
+</LinearLayout>
