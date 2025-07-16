@@ -109,7 +109,6 @@ public class ValidationCodesActivity extends BaseActivity {
     }
 
     private void initViewModels() {
-
         matiposViewModel = new ViewModelProvider(
                 getViewModelStore(),
                 new ViewModelProvider.AndroidViewModelFactory(getApplication())
@@ -234,6 +233,7 @@ public class ValidationCodesActivity extends BaseActivity {
 
     public void validateCode(Context context, String code) {
         matiposViewModel.postValidationCode(context, code, ConfigUtil.getMatiposDeviceCode(context));
+        matiposViewModel.getAllFaces();
     }
 
     @Override

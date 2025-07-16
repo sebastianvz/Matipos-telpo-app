@@ -74,6 +74,12 @@ public class MatiposServer {
         return AppDatabase.getInstance(ArcFaceApplication.getApplication()).faceDao().queryByFaceId(faceId);
     }
 
+    /********* New Methods **********/
+    public void GetAllFaces()
+    {
+        new AsyncGetAllFaces().run();
+    }
+
 
     // Async task
     private static class AsyncMatiposRequest {
@@ -160,6 +166,21 @@ public class MatiposServer {
         public void run(Context context, MovementEntity movementEntity) {
             executorService.execute(() -> {
                 long id = AppDatabase.getInstance(context).movementDao().insert(movementEntity);
+            });
+        }
+    }
+
+    /*********** New Methods **********/
+    private static class AsyncGetAllFaces {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+
+        public void run() {
+            executorService.execute(() -> {
+                try {
+                    MatiposService.getInstance().getAllFaces("http://192.168.1.76:8000/telpo/faces");
+                } catch (SocketTimeoutException e) {
+                    e.printStackTrace();
+                }
             });
         }
     }

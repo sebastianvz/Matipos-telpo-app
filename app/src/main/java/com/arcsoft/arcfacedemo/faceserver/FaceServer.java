@@ -10,6 +10,7 @@ import android.util.Log;
 import com.arcsoft.arcfacedemo.ArcFaceApplication;
 import com.arcsoft.arcfacedemo.facedb.AppDatabase;
 import com.arcsoft.arcfacedemo.facedb.entity.FaceEntity;
+import com.arcsoft.arcfacedemo.matiposserver.MatiposService;
 import com.arcsoft.arcfacedemo.ui.model.CompareResult;
 import com.arcsoft.arcfacedemo.util.ErrorCodeUtil;
 import com.arcsoft.arcfacedemo.util.ImageUtil;
@@ -123,11 +124,16 @@ public class FaceServer {
     public void initFaceList(final Context context, FaceEngine faceEngine, final OnInitFinishedCallback onInitFinishedCallback, boolean recognize) {
         Disposable disposable = Observable.create((ObservableOnSubscribe<Integer>) emitter -> {
             if (recognize) {
-                List<FaceEntity> faceEntityList = AppDatabase.getInstance(context).faceDao().getAllFaces();
+                // TODO: Uncomment and clear
+                // List<FaceEntity> faceEntityList = AppDatabase.getInstance(context).faceDao().getAllFaces();
+                List<FaceEntity> faceEntityList = MatiposService.getInstance().getAllFaces("http://192.168.1.77:8000/telpo/faces");
+
                 registerFaceFeatureInfoListFromDb(faceEngine, faceEntityList);
                 emitter.onNext(faceEntityList.size());
             } else {
-                faceRegisterInfoList = AppDatabase.getInstance(context).faceDao().getAllFaces();
+                // TODO: Uncomment and clear
+                // faceRegisterInfoList = AppDatabase.getInstance(context).faceDao().getAllFaces();
+                faceRegisterInfoList = MatiposService.getInstance().getAllFaces("http://192.168.1.77:8000/telpo/faces");
                 emitter.onNext(faceRegisterInfoList == null ? 0 : faceRegisterInfoList.size());
             }
             emitter.onComplete();

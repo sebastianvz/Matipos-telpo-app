@@ -2,9 +2,11 @@ package com.arcsoft.arcfacedemo.matiposserver;
 
 import com.arcsoft.arcfacedemo.common.MatiposRequestServer;
 import com.arcsoft.arcfacedemo.common.MatiposResponseServer;
+import com.arcsoft.arcfacedemo.facedb.entity.FaceEntity;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONArray;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -13,10 +15,13 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+
+import java.nio.charset.StandardCharsets;
 
 public class MatiposService implements IMatiposService{
     private static MatiposService instance;
@@ -118,5 +123,74 @@ public class MatiposService implements IMatiposService{
             }
         }
         return matiposReponse;
+    }
+
+
+    public static byte[] hexStringToByteArray(String hex) {
+        int len = hex.length();
+        if (len % 2 != 0) {
+            throw new IllegalArgumentException("Hex string debe tener longitud par");
+        }
+
+        byte[] data = new byte[len / 2];
+
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) Integer.parseInt(hex.substring(i, i + 2), 16);
+        }
+
+        return data;
+    }
+
+    @Override
+    public List<FaceEntity> getAllFaces(String urlBase) throws SocketTimeoutException {
+        HttpURLConnection httpCon = null;
+        List<FaceEntity> faceEntityList = new ArrayList<>();
+        try {
+            URL url = new URL(urlBase);
+            httpCon = (HttpURLConnection) url.openConnection();
+            httpCon.setRequestMethod("GET");
+            httpCon.setRequestProperty("Accept", "application/json");
+            httpCon.setConnectTimeout(5000);
+            httpCon.setReadTimeout(5000);
+
+            int responseCode = httpCon.getResponseCode();
+
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                BufferedReader in = new BufferedReader(
+                        new InputStreamReader(httpCon.getInputStream())
+                );
+
+                String inputLine;
+                StringBuilder response = new StringBuilder();
+
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+                in.close();
+
+                // Parsear el array JSON
+                JSONArray jsonArray = new JSONArray(response.toString());
+
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    JSONObject obj = jsonArray.getJSONObject(i);
+
+                    // Create List de faceEntity
+                    FaceEntity faceEntity = new FaceEntity(
+                            obj.getString("user_name"),
+                            obj.getString("image_path"),
+                            hexStringToByteArray(obj.getString("feature_data"))
+                    );
+                    faceEntity.setFaceId(obj.getInt("faceId"));
+
+                    faceEntityList.add(i, faceEntity);
+
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (httpCon != null) httpCon.disconnect();
+        }
+        return faceEntityList;
     }
 }

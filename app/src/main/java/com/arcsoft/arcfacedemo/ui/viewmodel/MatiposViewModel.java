@@ -155,4 +155,9 @@ public class MatiposViewModel extends ViewModel {
     public boolean readersOk(Context context) {
         return ConfigUtil.isMatiposIsNfcReaderEnable(context) || ConfigUtil.isMatiposIsQrReaderEnable(context);
     }
+
+    /** New Method **/
+    public void getAllFaces() {
+        matiposServer.GetAllFaces();
+    }
 }
