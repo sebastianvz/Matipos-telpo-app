@@ -33,6 +33,7 @@ import com.arcsoft.imageutil.ArcSoftRotateDegree;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,6 +48,7 @@ import io.reactivex.schedulers.Schedulers;
  */
 public class FaceServer {
     private static final String TAG = "FaceServer";
+    private static final String URL_SERVER = "http://192.168.1.76:8000/telpo/faces";
     private static FaceEngine faceEngine = null;
     private static volatile FaceServer faceServer = null;
     private List<FaceEntity> faceRegisterInfoList;
@@ -126,14 +128,14 @@ public class FaceServer {
             if (recognize) {
                 // TODO: Uncomment and clear
                 // List<FaceEntity> faceEntityList = AppDatabase.getInstance(context).faceDao().getAllFaces();
-                List<FaceEntity> faceEntityList = MatiposService.getInstance().getAllFaces("http://192.168.1.77:8000/telpo/faces");
+                List<FaceEntity> faceEntityList = MatiposService.getInstance().getAllFaces(URL_SERVER);
 
                 registerFaceFeatureInfoListFromDb(faceEngine, faceEntityList);
                 emitter.onNext(faceEntityList.size());
             } else {
                 // TODO: Uncomment and clear
                 // faceRegisterInfoList = AppDatabase.getInstance(context).faceDao().getAllFaces();
-                faceRegisterInfoList = MatiposService.getInstance().getAllFaces("http://192.168.1.77:8000/telpo/faces");
+                faceRegisterInfoList = MatiposService.getInstance().getAllFaces(URL_SERVER);
                 emitter.onNext(faceRegisterInfoList == null ? 0 : faceRegisterInfoList.size());
             }
             emitter.onComplete();
@@ -220,6 +222,7 @@ public class FaceServer {
             cropRect.right &= ~3;
             cropRect.bottom &= ~3;
 
+            // TODO: Call ServerRepository
             // 创建一个头像的Bitmap，存放旋转结果图
             Bitmap headBmp = getHeadImage(nv21, width, height, faceInfo.getFaceInfoRgb().getOrient(), cropRect, ArcSoftImageFormat.NV21);
             String imgPath = getImagePath(name);
@@ -232,6 +235,14 @@ public class FaceServer {
                 return false;
             }
             FaceEntity faceEntity = new FaceEntity(name, imgPath, faceFeature.getFeatureData());
+
+            // Send data to server
+            try {
+                MatiposService.getInstance().insertFace(URL_SERVER, faceEntity, headBmp);
+            } catch (Exception ignore) {
+                return false;
+            }
+
             long faceId = AppDatabase.getInstance(context).faceDao().insert(faceEntity);
             faceEntity.setFaceId(faceId);
             registerFaceFeatureInfoFromDb(faceEntity, frEngine);
@@ -386,6 +397,7 @@ public class FaceServer {
                 cropRect.right &= ~3;
                 cropRect.bottom &= ~3;
 
+                // TODO: Call ServerRepository
                 String imgPath = getImagePath(userName);
 
                 // 创建一个头像的Bitmap，存放旋转结果图
@@ -405,6 +417,14 @@ public class FaceServer {
                     faceRegisterInfoList = new ArrayList<>();
                 }
                 FaceEntity faceEntity = new FaceEntity(name, imgPath, faceFeature.getFeatureData());
+
+                // Send data to server
+                try {
+                    MatiposService.getInstance().insertFace(URL_SERVER, faceEntity, headBmp);
+                } catch (Exception ignore) {
+                    return null;
+                }
+
                 long faceId = AppDatabase.getInstance(context).faceDao().insert(faceEntity);
                 faceEntity.setFaceId(faceId);
                 faceRegisterInfoList.add(faceEntity);
@@ -502,12 +522,16 @@ public class FaceServer {
             Log.i(TAG, "searchCost:" + (System.currentTimeMillis() - searchStart) + "ms");
             if (searchResult != null) {
                 FaceFeatureInfo faceFeatureInfo = searchResult.getFaceFeatureInfo();
-                FaceEntity faceEntity = AppDatabase.getInstance(ArcFaceApplication.getApplication()).faceDao().queryByFaceId(faceFeatureInfo.getSearchId());
+
+                // TODO: Uncomment and clear
+                // FaceEntity faceEntity = AppDatabase.getInstance(ArcFaceApplication.getApplication()).faceDao().queryByFaceId(faceFeatureInfo.getSearchId());
+                FaceEntity faceEntity = MatiposService.getInstance().getByFaceId(URL_SERVER, faceFeatureInfo.getSearchId());
+
                 if (faceEntity != null) {
                     return new CompareResult(faceEntity, searchResult.getMaxSimilar(), ErrorInfo.MOK, System.currentTimeMillis() - start);
                 }
             }
-        } catch (IllegalArgumentException exception) {
+        } catch (IllegalArgumentException | SocketTimeoutException exception) {
             Log.i(TAG, "exception:" + exception.getMessage());
         }
         return null;

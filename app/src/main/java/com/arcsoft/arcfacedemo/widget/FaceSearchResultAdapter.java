@@ -1,6 +1,8 @@
 package com.arcsoft.arcfacedemo.widget;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,8 +13,11 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.arcsoft.arcfacedemo.R;
+import com.arcsoft.arcfacedemo.facedb.entity.FaceEntity;
+import com.arcsoft.arcfacedemo.matiposserver.MatiposService;
 import com.arcsoft.arcfacedemo.ui.model.CompareResult;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
 import java.util.List;
 
@@ -46,6 +51,8 @@ public class FaceSearchResultAdapter extends RecyclerView.Adapter<FaceSearchResu
         }
         Glide.with(holder.imageView)
                 .load(compareResultList.get(position).getFaceEntity().getImagePath())
+                .skipMemoryCache(true)
+                .diskCacheStrategy(DiskCacheStrategy.NONE)
                 .into(holder.imageView);
         holder.textView.setText(compareResultList.get(position).getFaceEntity().getUserName());
     }

@@ -429,9 +429,13 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
         matiposResponseServer = response;
 
         if (ConfigUtil.isInputDevice(getApplicationContext())) {
-            if (response.getStatus())
-                if (ConfigUtil.isMatiposIsQrReaderEnable(getApplicationContext()) || ConfigUtil.isMatiposIsNfcReaderEnable(getApplicationContext()))
-                    recognizeViewModel.prepareRegister();
+            try {
+                // if (response.getStatus())
+                    if (ConfigUtil.isMatiposIsQrReaderEnable(getApplicationContext()) || ConfigUtil.isMatiposIsNfcReaderEnable(getApplicationContext()))
+                        recognizeViewModel.prepareRegister();
+            } catch (Exception e) {
+                showToast(e.getMessage());
+            }
         }
         matiposViewModel.startProcessToEndingValidateCode(mediaPlayerInfoMessage, ledSecondsInOn);
     }

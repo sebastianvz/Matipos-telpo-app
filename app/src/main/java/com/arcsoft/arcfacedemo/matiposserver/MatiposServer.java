@@ -27,6 +27,7 @@ import java.util.concurrent.Executors;
 
 public class MatiposServer {
     static private MutableLiveData<MatiposResponseServer> matiposResponseServerMutableLiveData;
+    static private final String URL_BASE = "http://192.168.1.76:8000/telpo/faces";
 
     public MatiposServer() {
     }
@@ -177,7 +178,21 @@ public class MatiposServer {
         public void run() {
             executorService.execute(() -> {
                 try {
-                    MatiposService.getInstance().getAllFaces("http://192.168.1.76:8000/telpo/faces");
+                    MatiposService.getInstance().getAllFaces(URL_BASE);
+                } catch (SocketTimeoutException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+    }
+
+    private static class AsyncSendFaceData {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+
+        public void run() {
+            executorService.execute(() -> {
+                try {
+                    MatiposService.getInstance().getAllFaces(URL_BASE);
                 } catch (SocketTimeoutException e) {
                     e.printStackTrace();
                 }
