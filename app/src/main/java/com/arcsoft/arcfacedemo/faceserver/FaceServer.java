@@ -98,6 +98,17 @@ public class FaceServer {
         }
     }
 
+    public void updateFaceList(FaceEngine frEngine, FaceEntity faceEntity) {
+        Disposable disposable = Observable.create((ObservableOnSubscribe<Integer>) emitter -> {
+                    registerFaceFeatureInfoFromDb(faceEntity, frEngine);
+                    emitter.onComplete();
+                }).subscribeOn(Schedulers.io())
+                .unsubscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(size -> {
+                });
+    }
+
     /**
      * 销毁
      */
@@ -125,21 +136,21 @@ public class FaceServer {
      */
     public void initFaceList(final Context context, FaceEngine faceEngine, final OnInitFinishedCallback onInitFinishedCallback, boolean recognize) {
         Disposable disposable = Observable.create((ObservableOnSubscribe<Integer>) emitter -> {
-            if (recognize) {
-                // TODO: Uncomment and clear
-                // List<FaceEntity> faceEntityList = AppDatabase.getInstance(context).faceDao().getAllFaces();
-                List<FaceEntity> faceEntityList = MatiposService.getInstance().getAllFaces(URL_SERVER);
+                    if (recognize) {
+                        // TODO: Uncomment and clear
+                        // List<FaceEntity> faceEntityList = AppDatabase.getInstance(context).faceDao().getAllFaces();
+                        List<FaceEntity> faceEntityList = MatiposService.getInstance().getAllFaces(URL_SERVER);
 
-                registerFaceFeatureInfoListFromDb(faceEngine, faceEntityList);
-                emitter.onNext(faceEntityList.size());
-            } else {
-                // TODO: Uncomment and clear
-                // faceRegisterInfoList = AppDatabase.getInstance(context).faceDao().getAllFaces();
-                faceRegisterInfoList = MatiposService.getInstance().getAllFaces(URL_SERVER);
-                emitter.onNext(faceRegisterInfoList == null ? 0 : faceRegisterInfoList.size());
-            }
-            emitter.onComplete();
-        }).subscribeOn(Schedulers.io())
+                        registerFaceFeatureInfoListFromDb(faceEngine, faceEntityList);
+                        emitter.onNext(faceEntityList.size());
+                    } else {
+                        // TODO: Uncomment and clear
+                        // faceRegisterInfoList = AppDatabase.getInstance(context).faceDao().getAllFaces();
+                        faceRegisterInfoList = MatiposService.getInstance().getAllFaces(URL_SERVER);
+                        emitter.onNext(faceRegisterInfoList == null ? 0 : faceRegisterInfoList.size());
+                    }
+                    emitter.onComplete();
+                }).subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(size -> {
@@ -252,7 +263,8 @@ public class FaceServer {
 
     /**
      * 通过FaceEngine注册多个人脸数据
-     * @param faceEngine    指定FaceEngine
+     *
+     * @param faceEngine     指定FaceEngine
      * @param faceEntityList 人脸数据集
      */
     private void registerFaceFeatureInfoListFromDb(FaceEngine faceEngine, List<FaceEntity> faceEntityList) {
@@ -507,7 +519,7 @@ public class FaceServer {
      * 在特征库中搜索
      *
      * @param faceFeature 传入特征数据
-     * @param faceEngine 指定FaceEngine
+     * @param faceEngine  指定FaceEngine
      * @return 比对结果
      */
     public CompareResult searchFaceFeature(FaceFeature faceFeature, FaceEngine faceEngine) {

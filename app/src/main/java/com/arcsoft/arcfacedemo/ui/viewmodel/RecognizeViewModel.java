@@ -14,6 +14,7 @@ import com.arcsoft.arcfacedemo.ArcFaceApplication;
 import com.arcsoft.arcfacedemo.R;
 import com.arcsoft.arcfacedemo.facedb.entity.FaceEntity;
 import com.arcsoft.arcfacedemo.faceserver.FaceServer;
+import com.arcsoft.arcfacedemo.matiposserver.MatiposService;
 import com.arcsoft.arcfacedemo.ui.callback.OnRegisterFinishedCallback;
 import com.arcsoft.arcfacedemo.ui.model.CompareResult;
 import com.arcsoft.arcfacedemo.ui.model.PreviewConfig;
@@ -38,6 +39,8 @@ import com.arcsoft.face.LivenessParam;
 import com.arcsoft.face.MaskInfo;
 import com.arcsoft.face.enums.DetectFaceOrientPriority;
 import com.arcsoft.face.enums.DetectMode;
+
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -92,13 +95,11 @@ public class RecognizeViewModel extends ViewModel implements RecognizeCallback {
             this.eventType = eventType;
         }
 
-        public void setFaceEntity(FaceEntity faceEntity)
-        {
+        public void setFaceEntity(FaceEntity faceEntity) {
             this.faceEntity = faceEntity;
         }
 
-        public FaceEntity getFaceEntity()
-        {
+        public FaceEntity getFaceEntity() {
             return faceEntity;
         }
     }
@@ -191,6 +192,9 @@ public class RecognizeViewModel extends ViewModel implements RecognizeCallback {
 
     private Disposable registerNv21Disposable;
 
+    // update
+    private Disposable updateFaces;
+
     public void refreshIrPreviewData(byte[] irPreviewData) {
         irNV21 = irPreviewData;
     }
@@ -222,19 +226,19 @@ public class RecognizeViewModel extends ViewModel implements RecognizeCallback {
     private void registerFace(final byte[] nv21, FacePreviewInfo facePreviewInfo) {
         updateRegisterStatus(REGISTER_STATUS_PROCESSING);
         registerNv21Disposable = Observable.create((ObservableOnSubscribe<Boolean>) emitter -> {
-            FaceEngine registerEngine = new FaceEngine();
-            int res = registerEngine.init(ArcFaceApplication.getApplication(), DetectMode.ASF_DETECT_MODE_IMAGE, DetectFaceOrientPriority.ASF_OP_0_ONLY,
-                    1, FaceEngine.ASF_FACE_RECOGNITION);
-            if (res == ErrorInfo.MOK) {
-                boolean success = FaceServer.getInstance().registerNv21(ArcFaceApplication.getApplication(), nv21.clone(), previewSize.width,
-                        previewSize.height, facePreviewInfo, "registered_" + faceHelper.getTrackedFaceCount(), frEngine, registerEngine);
-                registerEngine.unInit();
-                emitter.onNext(success);
-            } else {
-                emitter.onNext(false);
-            }
-            emitter.onComplete();
-        })
+                    FaceEngine registerEngine = new FaceEngine();
+                    int res = registerEngine.init(ArcFaceApplication.getApplication(), DetectMode.ASF_DETECT_MODE_IMAGE, DetectFaceOrientPriority.ASF_OP_0_ONLY,
+                            1, FaceEngine.ASF_FACE_RECOGNITION);
+                    if (res == ErrorInfo.MOK) {
+                        boolean success = FaceServer.getInstance().registerNv21(ArcFaceApplication.getApplication(), nv21.clone(), previewSize.width,
+                                previewSize.height, facePreviewInfo, "registered_" + faceHelper.getTrackedFaceCount(), frEngine, registerEngine);
+                        registerEngine.unInit();
+                        emitter.onNext(success);
+                    } else {
+                        emitter.onNext(false);
+                    }
+                    emitter.onComplete();
+                })
                 .subscribeOn(Schedulers.computation())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeWith(new DisposableObserver<Boolean>() {
@@ -254,6 +258,45 @@ public class RecognizeViewModel extends ViewModel implements RecognizeCallback {
                             onRegisterFinishedCallback.onRegisterFinished(facePreviewInfo, false);
                         }
                         updateRegisterStatus(REGISTER_STATUS_DONE);
+                    }
+
+                    @Override
+                    public void onComplete() {
+                    }
+                });
+
+    }
+
+    // Metodo para actualizar rostros
+    public void validateMessage(String message) {
+        updateFaces = Observable.create((ObservableOnSubscribe<Boolean>) emitter -> {
+
+                    // Parsear el array JSON
+                    JSONObject jsonObject = new JSONObject(message);
+
+                    // Create List de faceEntity
+                    FaceEntity faceEntity = new FaceEntity(
+                            jsonObject.getString("user_name"),
+                            jsonObject.getString("image_path"),
+                            MatiposService.hexStringToByteArray(jsonObject.getString("feature_data"))
+                    );
+                    faceEntity.setFaceId(jsonObject.getInt("faceId"));
+
+                    FaceServer.getInstance().updateFaceList(frEngine, faceEntity);
+
+                })
+                .subscribeOn(Schedulers.computation())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new DisposableObserver<Boolean>() {
+
+                    @Override
+                    public void onNext(Boolean success) {
+
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
                     }
 
                     @Override
@@ -404,6 +447,11 @@ public class RecognizeViewModel extends ViewModel implements RecognizeCallback {
         if (registerNv21Disposable != null) {
             registerNv21Disposable.dispose();
             registerNv21Disposable = null;
+        }
+
+        if (updateFaces != null) {
+            updateFaces.dispose();
+            updateFaces = null;
         }
     }
 

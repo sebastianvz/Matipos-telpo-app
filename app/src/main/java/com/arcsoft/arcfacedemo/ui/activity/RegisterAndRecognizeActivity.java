@@ -32,6 +32,8 @@ import com.arcsoft.arcfacedemo.common.MatiposResponseServer;
 import com.arcsoft.arcfacedemo.databinding.ActivityRegisterAndRecognizeBinding;
 import com.arcsoft.arcfacedemo.facedb.entity.MovementEntity;
 import com.arcsoft.arcfacedemo.matiposserver.MatiposServer;
+import com.arcsoft.arcfacedemo.matiposserver.WebSocketCallback;
+import com.arcsoft.arcfacedemo.matiposserver.WebSocketManager;
 import com.arcsoft.arcfacedemo.ui.model.PreviewConfig;
 import com.arcsoft.arcfacedemo.ui.viewmodel.MatiposViewModel;
 import com.arcsoft.arcfacedemo.ui.viewmodel.RecognizeViewModel;
@@ -53,7 +55,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
-public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTreeObserver.OnGlobalLayoutListener {
+public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTreeObserver.OnGlobalLayoutListener, WebSocketCallback {
     private static final String TAG = "RegisterAndRecognize";
 
     private DualCameraHelper rgbCameraHelper;
@@ -92,6 +94,9 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
     private Gpio gpio;
     private long currentFaceID;
 
+    // Variables to websocket
+    private WebSocketManager socketManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -113,6 +118,13 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
         openRectInfoDraw = false;
         recognizeViewModel.setDrawRectInfoTextValue(true);
         matiposViewModel.stopReaders(RegisterAndRecognizeActivity.this);
+
+        String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0dXNlciJ9.CVqQYFCwzzRmpR-gf-fSwMSZQHMmGccslAWPj7X7LfM";
+        String url = "ws://192.168.1.76:8000/telpo/ws";
+
+        socketManager = new WebSocketManager(url, token, this);
+        socketManager.connect();
+
     }
 
     private void initReaders() {
@@ -213,7 +225,7 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
                             adapter.notifyItemRemoved(faceItemEvent.getIndex());
                         }
                     } catch (Exception ignored) {
-                        
+
                     }
                     break;
                 case INSERTED:
@@ -332,7 +344,7 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
 
                             adapter.notifyItemInserted(faceItemEvent.getIndex());
                         }
-                    } catch (Exception ignored){
+                    } catch (Exception ignored) {
 
                     }
                     break;
@@ -375,8 +387,7 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
 
     }
 
-    private void showDialog(MatiposResponseServer response)
-    {
+    private void showDialog(MatiposResponseServer response) {
         if (!inProgres)
             return;
 
@@ -431,8 +442,8 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
         if (ConfigUtil.isInputDevice(getApplicationContext())) {
             try {
                 // if (response.getStatus())
-                    if (ConfigUtil.isMatiposIsQrReaderEnable(getApplicationContext()) || ConfigUtil.isMatiposIsNfcReaderEnable(getApplicationContext()))
-                        recognizeViewModel.prepareRegister();
+                if (ConfigUtil.isMatiposIsQrReaderEnable(getApplicationContext()) || ConfigUtil.isMatiposIsNfcReaderEnable(getApplicationContext()))
+                    recognizeViewModel.prepareRegister();
             } catch (Exception e) {
                 showToast(e.getMessage());
             }
@@ -447,8 +458,6 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
 
                 // TODO: Back to menu using password
                 this.actionAfterFinish = NAVIGATE_TO_HOME_ACTIVITY;
-
-                // finish();
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(RegisterAndRecognizeActivity.this);
                 LayoutInflater inflater = getLayoutInflater();
@@ -472,8 +481,7 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
                                 gpio.off();
 
                             finish();
-                        }
-                        else
+                        } else
                             showToast("Usuario o Contraseña incorrecto");
 
                         touchCounter = 0;
@@ -501,10 +509,9 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
         binding.dualCameraTexturePreviewRgb.getViewTreeObserver().addOnGlobalLayoutListener(this);
         binding.setCompareResultList(recognizeViewModel.getCompareResultList().getValue());
 
-        if (ConfigUtil.isWhiteLightEnable(RegisterAndRecognizeActivity.this)){
+        if (ConfigUtil.isWhiteLightEnable(RegisterAndRecognizeActivity.this)) {
             gpio.write(RegisterAndRecognizeActivity.this, CommonConstants.LedType.FILL_LIGHT_1, CommonConstants.LedColor.WHITE_LED, 255);
-        }
-        else {
+        } else {
             gpio.write(RegisterAndRecognizeActivity.this, CommonConstants.LedType.FILL_LIGHT_1, CommonConstants.LedColor.WHITE_LED, 0);
             if (gpio != null)
                 gpio.off();
@@ -513,6 +520,8 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
 
     @Override
     protected void onDestroy() {
+        super.onDestroy();
+
         if (matiposViewModel != null) {
             matiposViewModel.stopReaders(RegisterAndRecognizeActivity.this);
         }
@@ -539,7 +548,11 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
                 navigateToNewPage(HomeActivity.class);
                 break;
         }
-        super.onDestroy();
+
+        if (socketManager != null) {
+            socketManager.close();
+            socketManager = null;
+        }
     }
 
 
@@ -951,5 +964,31 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
         if (irCameraHelper != null) {
             irCameraHelper.stop();
         }
+    }
+
+    @Override
+    public void onMessageReceived(String message) {
+        try {
+            recognizeViewModel.validateMessage(message);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    @Override
+    public void onConnectionOpened() {
+
+    }
+
+    @Override
+    public void onConnectionClosed() {
+        if (socketManager != null)
+            socketManager.reconnect();
+    }
+
+    @Override
+    public void onError(Throwable t) {
+
     }
 }
