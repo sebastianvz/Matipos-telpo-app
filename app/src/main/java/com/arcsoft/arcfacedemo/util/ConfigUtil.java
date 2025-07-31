@@ -91,6 +91,7 @@ public class ConfigUtil {
 
     // MATIPOS APP
     private static final String MATIPOS_URL_SERVER = "https://verificadortelpo.appsdevsebastianvz.com/api/v1/Verification/VerificationCode";
+    private static final String URL_BASE_FACE_REPOSITORY = "http://192.168.1.76:8000/telpo";
     private static final String MATIPOS_DEVICE_CODE = "aabbcc123";
     private static final boolean MATIPOS_IS_NFC_READER_ENABLE = false;
     private static final boolean MATIPOS_IS_QR_READER_ENABLE = false;
@@ -556,5 +557,26 @@ public class ConfigUtil {
         }
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         return sharedPreferences.edit().putBoolean(context.getString(R.string.preference_matipos_white_light), state).commit();
+    }
+
+    // New functions
+    public static String getUrlBaseFaceRepository(Context context) {
+        return getString(context, R.string.preference_matipos_url_urlBaseFaceRepository, URL_BASE_FACE_REPOSITORY);
+    }
+
+    public static boolean setUrlBaseFaceRepository(Context context, String urlServer) {
+        return commitString(context, R.string.preference_matipos_url_urlBaseFaceRepository, urlServer);
+    }
+
+    public static boolean isOperationRepositoryType(Context context) {
+        return  getBoolean(context, R.string.preference_matipos_is_OperationRepositoryType, true);
+    }
+
+    public static boolean setOperationRepositoryType(Context context, boolean state) {
+        if (context == null) {
+            return false;
+        }
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        return sharedPreferences.edit().putBoolean(context.getString(R.string.preference_matipos_is_OperationRepositoryType), state).commit();
     }
 }

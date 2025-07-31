@@ -58,7 +58,7 @@ public class AuditAdapter extends RecyclerView.Adapter<AuditViewHolder> {
                     }
                 } else if (items.get(position).getFaceId() > 0) {
                     Glide.with(holder.imageView)
-                            .load("http://192.168.1.76:8000/telpo/faces/2/read-image")
+                            .load(items.get(position).getFaceId())
                             .skipMemoryCache(true)
                             .diskCacheStrategy(DiskCacheStrategy.NONE)
                             .error(items.get(position).parseResponse().getStatus() ? R.drawable.ok : R.drawable.no)

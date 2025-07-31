@@ -119,6 +119,7 @@ public class RegisterAndRecognizeActivity extends BaseActivity implements ViewTr
         recognizeViewModel.setDrawRectInfoTextValue(true);
         matiposViewModel.stopReaders(RegisterAndRecognizeActivity.this);
 
+        // TODO: Verificar
         String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0dXNlciJ9.CVqQYFCwzzRmpR-gf-fSwMSZQHMmGccslAWPj7X7LfM";
         String url = "ws://192.168.1.76:8000/telpo/ws";
 

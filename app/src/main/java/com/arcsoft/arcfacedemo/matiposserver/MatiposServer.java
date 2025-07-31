@@ -27,12 +27,15 @@ import java.util.concurrent.Executors;
 
 public class MatiposServer {
     static private MutableLiveData<MatiposResponseServer> matiposResponseServerMutableLiveData;
-    static private final String URL_BASE = "http://192.168.1.76:8000/telpo/faces";
+    static private String urlBase = null;
 
     public MatiposServer() {
     }
 
     public void requestMatiposServer(Context context, String code, String macAddress) {
+        if (urlBase == null) {
+            urlBase = ConfigUtil.getUrlBaseFaceRepository(context);
+        }
         MatiposRequestServer matiposRequestServer = new MatiposRequestServer(
                 code,
                 macAddress,
@@ -42,6 +45,9 @@ public class MatiposServer {
     }
 
     public void requestMatiposServer(Context context, String code, String macAddress, long faceId) {
+        if (urlBase == null) {
+            urlBase = ConfigUtil.getUrlBaseFaceRepository(context);
+        }
         MatiposRequestServer matiposRequestServer = new MatiposRequestServer(
                 code,
                 macAddress,
@@ -178,7 +184,7 @@ public class MatiposServer {
         public void run() {
             executorService.execute(() -> {
                 try {
-                    MatiposService.getInstance().getAllFaces(URL_BASE);
+                    MatiposService.getInstance().getAllFaces(urlBase);
                 } catch (SocketTimeoutException e) {
                     e.printStackTrace();
                 }
@@ -192,7 +198,7 @@ public class MatiposServer {
         public void run() {
             executorService.execute(() -> {
                 try {
-                    MatiposService.getInstance().getAllFaces(URL_BASE);
+                    MatiposService.getInstance().getAllFaces(urlBase);
                 } catch (SocketTimeoutException e) {
                     e.printStackTrace();
                 }

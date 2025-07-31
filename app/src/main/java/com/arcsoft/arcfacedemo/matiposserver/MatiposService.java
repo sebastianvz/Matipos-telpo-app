@@ -249,7 +249,7 @@ public class MatiposService implements IMatiposService{
         return faceEntity;
     }
 
-    private byte[] parseImage(Bitmap bitmap) {
+    private static byte[] parseImage(Bitmap bitmap) {
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
         return stream.toByteArray();
@@ -264,8 +264,9 @@ public class MatiposService implements IMatiposService{
     }
 
     @Override
-    public void insertFace(String urlBase, FaceEntity faceEntity, Bitmap imgBitmap) {
+    public long insertFace(String urlBase, FaceEntity faceEntity, Bitmap imgBitmap) {
         HttpURLConnection httpCon = null;
+        long newId = 0;
         try {
             // Convertir imagen a Base64
             byte[] imageBytes = parseImage(imgBitmap);
@@ -316,14 +317,18 @@ public class MatiposService implements IMatiposService{
             reader.close();
 
             // Mostrar la respuesta completa
-            Log.d("HTTP_RESPONSE", "Code: " + responseCode + " Body: " + response.toString());
+            // Parsear el array JSON
+            JSONObject jsonObject = new JSONObject(response.toString());
 
+            newId = jsonObject.getLong("faceId");
 
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
             if (httpCon != null) httpCon.disconnect();
         }
+
+        return newId;
     }
 
     public Bitmap downloadImageAsBitmap(String imageUrl) {

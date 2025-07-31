@@ -27,6 +27,9 @@ public class MatiposServerSettingsActivity extends BaseActivity {
     private TextInputEditText textInputEditTextDeviceCode;
     private SwitchMaterial switchDeviceType;
 
+    // Vars new function
+    private TextInputEditText urlBaseFaceRepository;
+    private SwitchMaterial switchOperationRepositoryType;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +62,12 @@ public class MatiposServerSettingsActivity extends BaseActivity {
         switchDeviceType = findViewById(R.id.switchDeviceType);
         switchDeviceType.setChecked(ConfigUtil.isInputDevice(MatiposServerSettingsActivity.this));
 
+        urlBaseFaceRepository = findViewById(R.id.urlBaseFaceRepository);
+        urlBaseFaceRepository.setText(ConfigUtil.getUrlBaseFaceRepository(MatiposServerSettingsActivity.this));
+
+        switchOperationRepositoryType = findViewById(R.id.switchOperationRepositoryType);
+        switchOperationRepositoryType.setChecked(ConfigUtil.isOperationRepositoryType(MatiposServerSettingsActivity.this));
+
         findViewById(R.id.btnUpdate).setOnClickListener(v -> {
 
             AlertDialog.Builder builder = new AlertDialog.Builder(MatiposServerSettingsActivity.this);
@@ -79,7 +88,12 @@ public class MatiposServerSettingsActivity extends BaseActivity {
                         String urlBase = String.valueOf(textInputEditTextUrlBase.getText());
                         if (ConfigUtil.setMatiposUrlServer(getApplicationContext(), urlBase)) {
                             if (ConfigUtil.setInputDevice(getApplicationContext(), switchDeviceType.isChecked())) {
-                                isError = false;
+                                String urlBaseRepo = String.valueOf(urlBaseFaceRepository.getText());
+                                if (ConfigUtil.setUrlBaseFaceRepository(getApplicationContext(), urlBaseRepo)) {
+                                    if (ConfigUtil.setOperationRepositoryType(getApplicationContext(), switchOperationRepositoryType.isChecked())) {
+                                        isError = false;
+                                    }
+                                }
                             }
                         }
                     }
