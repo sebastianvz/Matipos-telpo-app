@@ -29,6 +29,7 @@ public class WebSocketManager {
         // Get URL From config
         String url = ConfigUtil.getUrlBaseFaceRepository(context);
         url = url.replace("http://", "ws://");
+        url = url.replace("https://", "wss://");
         url = url + "/ws";
         this.socketUrl = url;
 
