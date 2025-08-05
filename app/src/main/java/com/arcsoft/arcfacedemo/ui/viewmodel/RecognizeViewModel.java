@@ -15,6 +15,7 @@ import com.arcsoft.arcfacedemo.R;
 import com.arcsoft.arcfacedemo.facedb.entity.FaceEntity;
 import com.arcsoft.arcfacedemo.faceserver.FaceServer;
 import com.arcsoft.arcfacedemo.matiposserver.MatiposService;
+import com.arcsoft.arcfacedemo.matiposserver.WebSocketManager;
 import com.arcsoft.arcfacedemo.ui.callback.OnRegisterFinishedCallback;
 import com.arcsoft.arcfacedemo.ui.model.CompareResult;
 import com.arcsoft.arcfacedemo.ui.model.PreviewConfig;
@@ -273,6 +274,17 @@ public class RecognizeViewModel extends ViewModel implements RecognizeCallback {
 
                     // Parsear el array JSON
                     JSONObject jsonObject = new JSONObject(message);
+
+                    if (jsonObject.has("status"))
+                    {
+                        JSONObject userData = jsonObject.getJSONObject("user");
+                        if (userData.has("token")) {
+                            // Save token
+                            String token = userData.getString("token");
+                            WebSocketManager.setAuthToken(token);
+                        }
+                        return;
+                    }
 
                     // Create List de faceEntity
                     FaceEntity faceEntity = new FaceEntity(

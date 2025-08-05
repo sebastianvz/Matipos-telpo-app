@@ -273,7 +273,7 @@ public class FaceServer {
 
                     if (faceId > 0) {
                         faceEntity.setFaceId(faceId);
-                        new PublishNewFace(faceEntity);
+                        new PublishNewFace(context.getApplicationContext(), faceEntity);
                     } else  {
                         return false;
                     }
@@ -467,7 +467,7 @@ public class FaceServer {
                         faceId = MatiposService.getInstance().insertFace(urlServerRepository, faceEntity, headBmp);
                         if (faceId > 0) {
                             faceEntity.setFaceId(faceId);
-                            new PublishNewFace(faceEntity);
+                            new PublishNewFace(context.getApplicationContext(), faceEntity);
                         } else {
                             return null;
                         }
@@ -632,12 +632,8 @@ public class FaceServer {
         WebSocketManager webSocketManager;
         FaceEntity faceEntity;
 
-        public PublishNewFace(FaceEntity faceEntity) {
-
-            // TODO: Verificar envio de nuevo registro
-            String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0dXNlciJ9.CVqQYFCwzzRmpR-gf-fSwMSZQHMmGccslAWPj7X7LfM";
-            String url = "ws://192.168.1.76:8000/telpo/ws";
-            webSocketManager = new WebSocketManager(url, token, this);
+        public PublishNewFace(Context context, FaceEntity faceEntity) {
+            webSocketManager = new WebSocketManager(context, this);
             webSocketManager.connect();
             this.faceEntity = faceEntity;
         }
@@ -670,7 +666,8 @@ public class FaceServer {
 
         @Override
         public void onConnectionClosed() {
-
+            if (webSocketManager != null)
+                webSocketManager.close();
         }
 
         @Override
