@@ -14,6 +14,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.arcsoft.arcfacedemo.R;
 import com.arcsoft.arcfacedemo.facedb.entity.MovementEntity;
 import com.arcsoft.arcfacedemo.ui.activity.HomeActivity;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
 import java.io.File;
 import java.util.List;
@@ -54,6 +56,14 @@ public class AuditAdapter extends RecyclerView.Adapter<AuditViewHolder> {
                             return;
                         }
                     }
+                } else if (items.get(position).getFaceId() > 0) {
+                    Glide.with(holder.imageView)
+                            .load(items.get(position).getFaceId())
+                            .skipMemoryCache(true)
+                            .diskCacheStrategy(DiskCacheStrategy.NONE)
+                            .error(items.get(position).parseResponse().getStatus() ? R.drawable.ok : R.drawable.no)
+                            .into(holder.imageView);
+                    return;
                 }
                 holder.imageView.setBackgroundResource(items.get(position).parseResponse().getStatus() ? R.drawable.ok : R.drawable.no);
             } catch (Exception e) {

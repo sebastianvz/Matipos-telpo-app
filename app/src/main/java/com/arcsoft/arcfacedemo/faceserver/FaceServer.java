@@ -5,12 +5,18 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.os.Environment;
+import android.util.Base64;
 import android.util.Log;
 
 import com.arcsoft.arcfacedemo.ArcFaceApplication;
 import com.arcsoft.arcfacedemo.facedb.AppDatabase;
 import com.arcsoft.arcfacedemo.facedb.entity.FaceEntity;
+import com.arcsoft.arcfacedemo.matiposserver.MatiposService;
+import com.arcsoft.arcfacedemo.matiposserver.WebSocketCallback;
+import com.arcsoft.arcfacedemo.matiposserver.WebSocketManager;
+import com.arcsoft.arcfacedemo.ui.activity.MatiposServerSettingsActivity;
 import com.arcsoft.arcfacedemo.ui.model.CompareResult;
+import com.arcsoft.arcfacedemo.util.ConfigUtil;
 import com.arcsoft.arcfacedemo.util.ErrorCodeUtil;
 import com.arcsoft.arcfacedemo.util.ImageUtil;
 import com.arcsoft.arcfacedemo.util.face.model.FacePreviewInfo;
@@ -29,9 +35,12 @@ import com.arcsoft.imageutil.ArcSoftImageUtil;
 import com.arcsoft.imageutil.ArcSoftImageUtilError;
 import com.arcsoft.imageutil.ArcSoftRotateDegree;
 
+import org.json.JSONObject;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,6 +63,8 @@ public class FaceServer {
      * 最大注册人脸数
      */
     private static final int MAX_REGISTER_FACE_COUNT = 30000;
+    private String urlServerRepository = null;
+    private boolean serverRepository = false;
 
     private FaceServer() {
         faceRegisterInfoList = new ArrayList<>();
@@ -95,6 +106,17 @@ public class FaceServer {
         }
     }
 
+    public void updateFaceList(FaceEngine frEngine, FaceEntity faceEntity) {
+        Disposable disposable = Observable.create((ObservableOnSubscribe<Integer>) emitter -> {
+                    registerFaceFeatureInfoFromDb(faceEntity, frEngine);
+                    emitter.onComplete();
+                }).subscribeOn(Schedulers.io())
+                .unsubscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(size -> {
+                });
+    }
+
     /**
      * 销毁
      */
@@ -122,16 +144,31 @@ public class FaceServer {
      */
     public void initFaceList(final Context context, FaceEngine faceEngine, final OnInitFinishedCallback onInitFinishedCallback, boolean recognize) {
         Disposable disposable = Observable.create((ObservableOnSubscribe<Integer>) emitter -> {
-            if (recognize) {
-                List<FaceEntity> faceEntityList = AppDatabase.getInstance(context).faceDao().getAllFaces();
-                registerFaceFeatureInfoListFromDb(faceEngine, faceEntityList);
-                emitter.onNext(faceEntityList.size());
-            } else {
-                faceRegisterInfoList = AppDatabase.getInstance(context).faceDao().getAllFaces();
-                emitter.onNext(faceRegisterInfoList == null ? 0 : faceRegisterInfoList.size());
-            }
-            emitter.onComplete();
-        }).subscribeOn(Schedulers.io())
+                    if(urlServerRepository == null) {
+                        urlServerRepository =  ConfigUtil.getUrlBaseFaceRepository(context) + "/faces";
+                        serverRepository = ConfigUtil.isOperationRepositoryType(context);
+                    }
+                    if (recognize) {
+                        // TODO: Uncomment and clear
+                        List<FaceEntity> faceEntityList = new ArrayList<>();
+                        if (serverRepository) {
+                            faceEntityList = MatiposService.getInstance().getAllFaces(urlServerRepository);
+                        } else {
+                            faceEntityList = AppDatabase.getInstance(context).faceDao().getAllFaces();
+                        }
+                        registerFaceFeatureInfoListFromDb(faceEngine, faceEntityList);
+                        emitter.onNext(faceEntityList.size());
+                    } else {
+                        // TODO: Uncomment and clear
+                        if (serverRepository) {
+                            faceRegisterInfoList = MatiposService.getInstance().getAllFaces(urlServerRepository);
+                        } else {
+                            faceRegisterInfoList = AppDatabase.getInstance(context).faceDao().getAllFaces();
+                        }
+                        emitter.onNext(faceRegisterInfoList == null ? 0 : faceRegisterInfoList.size());
+                    }
+                    emitter.onComplete();
+                }).subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(size -> {
@@ -214,6 +251,7 @@ public class FaceServer {
             cropRect.right &= ~3;
             cropRect.bottom &= ~3;
 
+            // TODO: Call ServerRepository
             // 创建一个头像的Bitmap，存放旋转结果图
             Bitmap headBmp = getHeadImage(nv21, width, height, faceInfo.getFaceInfoRgb().getOrient(), cropRect, ArcSoftImageFormat.NV21);
             String imgPath = getImagePath(name);
@@ -226,7 +264,27 @@ public class FaceServer {
                 return false;
             }
             FaceEntity faceEntity = new FaceEntity(name, imgPath, faceFeature.getFeatureData());
-            long faceId = AppDatabase.getInstance(context).faceDao().insert(faceEntity);
+
+            // Send data to server
+            long faceId;
+            if (serverRepository) {
+                try {
+                    faceId = MatiposService.getInstance().insertFace(urlServerRepository, faceEntity, headBmp);
+
+                    if (faceId > 0) {
+                        faceEntity.setFaceId(faceId);
+                        new PublishNewFace(context.getApplicationContext(), faceEntity);
+                    } else  {
+                        return false;
+                    }
+                } catch (Exception ignore) {
+                    return false;
+                }
+            } else {
+                faceId = AppDatabase.getInstance(context).faceDao().insert(faceEntity);
+            }
+
+            // Close transaction
             faceEntity.setFaceId(faceId);
             registerFaceFeatureInfoFromDb(faceEntity, frEngine);
             return true;
@@ -235,7 +293,8 @@ public class FaceServer {
 
     /**
      * 通过FaceEngine注册多个人脸数据
-     * @param faceEngine    指定FaceEngine
+     *
+     * @param faceEngine     指定FaceEngine
      * @param faceEntityList 人脸数据集
      */
     private void registerFaceFeatureInfoListFromDb(FaceEngine faceEngine, List<FaceEntity> faceEntityList) {
@@ -380,6 +439,7 @@ public class FaceServer {
                 cropRect.right &= ~3;
                 cropRect.bottom &= ~3;
 
+                // TODO: Call ServerRepository
                 String imgPath = getImagePath(userName);
 
                 // 创建一个头像的Bitmap，存放旋转结果图
@@ -399,7 +459,26 @@ public class FaceServer {
                     faceRegisterInfoList = new ArrayList<>();
                 }
                 FaceEntity faceEntity = new FaceEntity(name, imgPath, faceFeature.getFeatureData());
-                long faceId = AppDatabase.getInstance(context).faceDao().insert(faceEntity);
+
+                // Send data to server
+                long faceId;
+                if (serverRepository) {
+                    try {
+                        faceId = MatiposService.getInstance().insertFace(urlServerRepository, faceEntity, headBmp);
+                        if (faceId > 0) {
+                            faceEntity.setFaceId(faceId);
+                            new PublishNewFace(context.getApplicationContext(), faceEntity);
+                        } else {
+                            return null;
+                        }
+                    } catch (Exception ignore) {
+                        return null;
+                    }
+                } else {
+                    faceId = AppDatabase.getInstance(context).faceDao().insert(faceEntity);
+                }
+
+                // Close transaction
                 faceEntity.setFaceId(faceId);
                 faceRegisterInfoList.add(faceEntity);
                 return faceEntity;
@@ -481,7 +560,7 @@ public class FaceServer {
      * 在特征库中搜索
      *
      * @param faceFeature 传入特征数据
-     * @param faceEngine 指定FaceEngine
+     * @param faceEngine  指定FaceEngine
      * @return 比对结果
      */
     public CompareResult searchFaceFeature(FaceFeature faceFeature, FaceEngine faceEngine) {
@@ -496,12 +575,21 @@ public class FaceServer {
             Log.i(TAG, "searchCost:" + (System.currentTimeMillis() - searchStart) + "ms");
             if (searchResult != null) {
                 FaceFeatureInfo faceFeatureInfo = searchResult.getFaceFeatureInfo();
-                FaceEntity faceEntity = AppDatabase.getInstance(ArcFaceApplication.getApplication()).faceDao().queryByFaceId(faceFeatureInfo.getSearchId());
+
+                // TODO: Uncomment and clear
+                FaceEntity faceEntity = null;
+                if (serverRepository) {
+                    faceEntity = MatiposService.getInstance().getByFaceId(urlServerRepository, faceFeatureInfo.getSearchId());
+                }
+                else {
+                    faceEntity = AppDatabase.getInstance(ArcFaceApplication.getApplication()).faceDao().queryByFaceId(faceFeatureInfo.getSearchId());
+                }
+
                 if (faceEntity != null) {
                     return new CompareResult(faceEntity, searchResult.getMaxSimilar(), ErrorInfo.MOK, System.currentTimeMillis() - start);
                 }
             }
-        } catch (IllegalArgumentException exception) {
+        } catch (IllegalArgumentException | SocketTimeoutException exception) {
             Log.i(TAG, "exception:" + exception.getMessage());
         }
         return null;
@@ -537,5 +625,54 @@ public class FaceServer {
         }
         rect.inset(-padding, -padding);
         return rect;
+    }
+
+    private static class PublishNewFace implements WebSocketCallback {
+
+        WebSocketManager webSocketManager;
+        FaceEntity faceEntity;
+
+        public PublishNewFace(Context context, FaceEntity faceEntity) {
+            webSocketManager = new WebSocketManager(context, this);
+            webSocketManager.connect();
+            this.faceEntity = faceEntity;
+        }
+
+        @Override
+        public void onMessageReceived(String message) {
+
+        }
+
+        @Override
+        public void onConnectionOpened() {
+
+            try {
+
+                JSONObject jsonBody = new JSONObject();
+                jsonBody.put("faceId", faceEntity.getFaceId());
+                jsonBody.put("user_name", faceEntity.getUserName());
+                jsonBody.put("image_path", faceEntity.getImagePath());
+                jsonBody.put("feature_data", MatiposService.bytesToHex(faceEntity.getFeatureData()));
+                jsonBody.put("register_time", faceEntity.getRegisterTime());
+
+                webSocketManager.send(jsonBody.toString());
+                webSocketManager.close();
+
+            } catch (Exception ignore) {
+
+            }
+
+        }
+
+        @Override
+        public void onConnectionClosed() {
+            if (webSocketManager != null)
+                webSocketManager.close();
+        }
+
+        @Override
+        public void onError(Throwable t) {
+
+        }
     }
 }

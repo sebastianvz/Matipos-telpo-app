@@ -223,6 +223,8 @@
     <string name="preference_matipos_admin_username" translatable="false">matipos_admin_username</string>
     <string name="preference_matipos_admin_password" translatable="false">matipos_admin_password</string>
     <string name="preference_matipos_white_light" translatable="false">matipos_white_light</string>
+    <string name="preference_matipos_url_urlBaseFaceRepository" translatable="false">url_urlBaseFaceRepository</string>
+    <string name="preference_matipos_is_OperationRepositoryType" translatable="false">is_OperationRepositoryType</string>
 
 
     <!-- 识别相关的配置项-->

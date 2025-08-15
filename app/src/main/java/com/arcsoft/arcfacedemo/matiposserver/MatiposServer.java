@@ -27,11 +27,15 @@ import java.util.concurrent.Executors;
 
 public class MatiposServer {
     static private MutableLiveData<MatiposResponseServer> matiposResponseServerMutableLiveData;
+    static private String urlBase = null;
 
     public MatiposServer() {
     }
 
     public void requestMatiposServer(Context context, String code, String macAddress) {
+        if (urlBase == null) {
+            urlBase = ConfigUtil.getUrlBaseFaceRepository(context);
+        }
         MatiposRequestServer matiposRequestServer = new MatiposRequestServer(
                 code,
                 macAddress,
@@ -41,6 +45,9 @@ public class MatiposServer {
     }
 
     public void requestMatiposServer(Context context, String code, String macAddress, long faceId) {
+        if (urlBase == null) {
+            urlBase = ConfigUtil.getUrlBaseFaceRepository(context);
+        }
         MatiposRequestServer matiposRequestServer = new MatiposRequestServer(
                 code,
                 macAddress,
@@ -72,6 +79,12 @@ public class MatiposServer {
 
     public FaceEntity getFaceEntityByFaceId(int faceId) {
         return AppDatabase.getInstance(ArcFaceApplication.getApplication()).faceDao().queryByFaceId(faceId);
+    }
+
+    /********* New Methods **********/
+    public void GetAllFaces()
+    {
+        new AsyncGetAllFaces().run();
     }
 
 
@@ -160,6 +173,35 @@ public class MatiposServer {
         public void run(Context context, MovementEntity movementEntity) {
             executorService.execute(() -> {
                 long id = AppDatabase.getInstance(context).movementDao().insert(movementEntity);
+            });
+        }
+    }
+
+    /*********** New Methods **********/
+    private static class AsyncGetAllFaces {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+
+        public void run() {
+            executorService.execute(() -> {
+                try {
+                    MatiposService.getInstance().getAllFaces(urlBase);
+                } catch (SocketTimeoutException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+    }
+
+    private static class AsyncSendFaceData {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+
+        public void run() {
+            executorService.execute(() -> {
+                try {
+                    MatiposService.getInstance().getAllFaces(urlBase);
+                } catch (SocketTimeoutException e) {
+                    e.printStackTrace();
+                }
             });
         }
     }

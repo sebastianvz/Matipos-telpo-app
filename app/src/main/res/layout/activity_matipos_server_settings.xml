@@ -21,7 +21,7 @@
             android:text="Matipos Server Settings"
             android:textAlignment="center"
             android:textStyle="bold"
-            android:textSize="30dp" />
+            android:textSize="30sp" />
 
         <com.google.android.material.divider.MaterialDivider
             android:layout_width="match_parent"
@@ -57,18 +57,74 @@
             android:textSize="18sp"
             android:textStyle="bold" />
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/deviceCode"
+        <TextView
+            android:id="@+id/deviceSerial"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="textUri"
+            android:text="DEVICE_SERIAL"
+            android:textAlignment="center"
+            android:layout_marginTop="20dp"
+            android:textSize="18sp"
             android:textStyle="bold" />
 
         <com.google.android.material.divider.MaterialDivider
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:layout_marginBottom="5dp" />
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp" />
+
+        <TextView
+            android:textColor="@color/colorPrimary"
+            android:id="@+id/textViewSectionTwo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Tipo de validacion de Rostros"
+            android:textAlignment="center"
+            android:textStyle="bold"
+            android:layout_marginBottom="10dp"
+            android:textSize="25sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:paddingTop="5dp"
+            android:text="URL Servidor Validacion Rostros"
+            android:textColor="@color/colorAccent"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/urlBaseFaceRepository"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textUri"
+            android:textStyle="bold" />
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:textColor="@color/colorAccent"
+            android:id="@+id/switchOperationRepositoryType"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="Validacion En Servidor"/>
+
+        <com.google.android.material.divider.MaterialDivider
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp" />
+
+        <TextView
+            android:textColor="@color/colorPrimary"
+            android:id="@+id/textViewSectionThree"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Modo de operacion"
+            android:textAlignment="center"
+            android:textStyle="bold"
+            android:layout_marginBottom="10dp"
+            android:textSize="25sp" />
 
         <com.google.android.material.switchmaterial.SwitchMaterial
             android:textColor="@color/colorAccent"

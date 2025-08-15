@@ -2,11 +2,13 @@ package com.arcsoft.arcfacedemo.ui.activity;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
@@ -14,6 +16,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import com.arcsoft.arcfacedemo.R;
 import com.arcsoft.arcfacedemo.util.ConfigUtil;
@@ -24,9 +27,11 @@ import com.google.android.material.textfield.TextInputEditText;
 public class MatiposServerSettingsActivity extends BaseActivity {
 
     private TextInputEditText textInputEditTextUrlBase;
-    private TextInputEditText textInputEditTextDeviceCode;
     private SwitchMaterial switchDeviceType;
 
+    // Vars new function
+    private TextInputEditText urlBaseFaceRepository;
+    private SwitchMaterial switchOperationRepositoryType;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +49,7 @@ public class MatiposServerSettingsActivity extends BaseActivity {
         initView();
     }
 
+    @SuppressLint("HardwareIds")
     private void initView() {
         findViewById(R.id.btnBack).setOnClickListener(v -> {
             finish();
@@ -53,11 +59,22 @@ public class MatiposServerSettingsActivity extends BaseActivity {
         textInputEditTextUrlBase = findViewById(R.id.urlBase);
         textInputEditTextUrlBase.setText(ConfigUtil.getMatiposUrlServer(MatiposServerSettingsActivity.this));
 
-        textInputEditTextDeviceCode = findViewById(R.id.deviceCode);
-        textInputEditTextDeviceCode.setText(ConfigUtil.getMatiposDeviceCode(MatiposServerSettingsActivity.this));
-
         switchDeviceType = findViewById(R.id.switchDeviceType);
         switchDeviceType.setChecked(ConfigUtil.isInputDevice(MatiposServerSettingsActivity.this));
+
+        urlBaseFaceRepository = findViewById(R.id.urlBaseFaceRepository);
+        urlBaseFaceRepository.setText(ConfigUtil.getUrlBaseFaceRepository(MatiposServerSettingsActivity.this));
+
+        switchOperationRepositoryType = findViewById(R.id.switchOperationRepositoryType);
+        switchOperationRepositoryType.setChecked(ConfigUtil.isOperationRepositoryType(MatiposServerSettingsActivity.this));
+
+        TextView textViewDeviceSerial = findViewById(R.id.deviceSerial);
+        textViewDeviceSerial.setText(
+                Settings.Secure.getString(
+                        this.getContentResolver(),
+                        Settings.Secure.ANDROID_ID
+                )
+        );
 
         findViewById(R.id.btnUpdate).setOnClickListener(v -> {
 
@@ -74,12 +91,14 @@ public class MatiposServerSettingsActivity extends BaseActivity {
                 public void onClick(DialogInterface dialog, int which) {
                     boolean isError = true;
 
-                    String deviceCode = String.valueOf(textInputEditTextDeviceCode.getText());
-                    if (ConfigUtil.setMatiposDeviceCode(getApplicationContext(), deviceCode)) {
-                        String urlBase = String.valueOf(textInputEditTextUrlBase.getText());
-                        if (ConfigUtil.setMatiposUrlServer(getApplicationContext(), urlBase)) {
-                            if (ConfigUtil.setInputDevice(getApplicationContext(), switchDeviceType.isChecked())) {
-                                isError = false;
+                    String urlBase = String.valueOf(textInputEditTextUrlBase.getText());
+                    if (ConfigUtil.setMatiposUrlServer(getApplicationContext(), urlBase)) {
+                        if (ConfigUtil.setInputDevice(getApplicationContext(), switchDeviceType.isChecked())) {
+                            String urlBaseRepo = String.valueOf(urlBaseFaceRepository.getText());
+                            if (ConfigUtil.setUrlBaseFaceRepository(getApplicationContext(), urlBaseRepo)) {
+                                if (ConfigUtil.setOperationRepositoryType(getApplicationContext(), switchOperationRepositoryType.isChecked())) {
+                                    isError = false;
+                                }
                             }
                         }
                     }
@@ -91,7 +110,6 @@ public class MatiposServerSettingsActivity extends BaseActivity {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     textInputEditTextUrlBase.setText(ConfigUtil.getMatiposUrlServer(MatiposServerSettingsActivity.this));
-                    textInputEditTextDeviceCode.setText(ConfigUtil.getMatiposDeviceCode(MatiposServerSettingsActivity.this));
                     dialog.dismiss();
                 }
             });
