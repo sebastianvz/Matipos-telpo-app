@@ -57,11 +57,14 @@
             android:textSize="18sp"
             android:textStyle="bold" />
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/deviceCode"
+        <TextView
+            android:id="@+id/deviceSerial"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="textUri"
+            android:text="DEVICE_SERIAL"
+            android:textAlignment="center"
+            android:layout_marginTop="20dp"
+            android:textSize="18sp"
             android:textStyle="bold" />
 
         <com.google.android.material.divider.MaterialDivider
